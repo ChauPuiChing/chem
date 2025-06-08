@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSE化学征途：元素炼金师</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #e74c3c;
+            --accent: #f39c12;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --lab-bg: #d5e8e6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="3" fill="%234a6fa5" opacity="0.6"/><circle cx="50" cy="30" r="2" fill="%23f39c12" opacity="0.6"/><circle cx="80" cy="10" r="4" fill="%23e74c3c" opacity="0.6"/><circle cx="10" cy="70" r="3" fill="%232ecc71" opacity="0.6"/><circle cx="40" cy="90" r="2" fill="%234a6fa5" opacity="0.6"/><circle cx="90" cy="60" r="5" fill="%23f39c12" opacity="0.6"/></svg>');
+            z-index: -1;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            color: #f1c40f;
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .game-area {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .main-content {
+            flex: 3;
+            min-width: 300px;
+        }
+        
+        .sidebar {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(44, 62, 80, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-title i {
+            font-size: 1.3rem;
+        }
+        
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .progress-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 10px;
+            width: 65%;
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            background: #3a5a8c;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-accent {
+            background: var(--accent);
+        }
+        
+        .btn-accent:hover {
+            background: #e08e0b;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #27ae60;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .topic-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .topic-card:hover {
+            transform: translateY(-5px);
+            background: rgba(74, 111, 165, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .topic-card.completed {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: var(--success);
+        }
+        
+        .topic-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+        
+        .topic-title {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .topic-progress {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .lab-equipment {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .equipment-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            width: calc(50% - 10px);
+            min-width: 150px;
+        }
+        
+        .equipment-name {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: var(--accent);
+        }
+        
+        .equipment-stats {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .bosses-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .boss-card {
+            background: rgba(231, 76, 60, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            width: calc(33.333% - 15px);
+            min-width: 150px;
+            text-align: center;
+            border: 2px solid rgba(231, 76, 60, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .boss-card:hover {
+            transform: scale(1.05);
+            background: rgba(231, 76, 60, 0.3);
+        }
+        
+        .boss-card.defeated {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: var(--success);
+        }
+        
+        .boss-level {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .boss-name {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-container {
+            background: var(--lab-bg);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            color: var(--dark);
+        }
+        
+        .quiz-question {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .quiz-option {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #ddd;
+            font-weight: 500;
+        }
+        
+        .quiz-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .quiz-option.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .quiz-option.correct {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+        
+        .quiz-option.incorrect {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+        
+        .quiz-result {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            opacity: 0.5;
+        }
+        
+        .achievement-card.unlocked {
+            opacity: 1;
+            background: rgba(243, 156, 18, 0.2);
+            border: 2px solid var(--accent);
+        }
+        
+        .achievement-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+        
+        .achievement-title {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .achievement-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .boss-card {
+                width: calc(50% - 10px);
+            }
+            
+            .equipment-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-flask"></i> DSE化学征途：元素炼金师</h1>
+            <p class="subtitle">融合香港DSE化学课程与角色扮演游戏的沉浸式学习体验</p>
+        </header>
+        
+        <div class="game-area">
+            <div class="main-content">
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fas fa-book"></i> 化学课题挑战</h2>
+                    <p>选择DSE化学课题进行挑战，通过回答化学问题获取经验值和金币！</p>
+                    
+                    <div class="topics-grid">
+                        <div class="topic-card" data-topic="1">
+                            <div class="topic-icon"><i class="fas fa-globe-asia"></i></div>
+                            <div class="topic-title">地球资源</div>
+                            <div class="topic-progress">进度: 2/5</div>
+                        </div>
+                        
+                        <div class="topic-card" data-topic="2">
+                            <div class="topic-icon"><i class="fas fa-atom"></i></div>
+                            <div class="topic-title">微观世界</div>
+                            <div class="topic-progress">进度: 0/5</div>
+                        </div>
+                        
+                        <div class="topic-card completed" data-topic="3">
+                            <div class="topic-icon"><i class="fas fa-gem"></i></div>
+                            <div class="topic-title">金属</div>
+                            <div class="topic-progress">已完成</div>
+                        </div>
+                        
+                        <div class="topic-card" data-topic="4">
+                            <div class="topic-icon"><i class="fas fa-vial"></i></div>
+                            <div class="topic-title">酸碱盐</div>
+                            <div class="topic-progress">进度: 1/5</div>
+                        </div>
+                        
+                        <div class="topic-card" data-topic="5">
+                            <div class="topic-icon"><i class="fas fa-gas-pump"></i></div>
+                            <div class="topic-title">化石燃料</div>
+                            <div class="topic-progress">进度: 0/5</div>
+                        </div>
+                        
+                        <div class="topic-card" data-topic="6">
+                            <div class="topic-icon"><i class="fas fa-battery-full"></i></div>
+                            <div class="topic-title">氧化还原反应</div>
+                            <div class="topic-progress">进度: 0/5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-container" id="quizSection">
+                        <div class="quiz-question" id="question">铁矿石主要用哪种方法提取铁？</div>
+                        
+                        <div class="quiz-options">
+                            <div class="quiz-option" data-option="A">A. 电解</div>
+                            <div class="quiz-option" data-option="B">B. 碳还原</div>
+                            <div class="quiz-option" data-option="C">C. 热分解</div>
+                            <div class="quiz-option" data-option="D">D. 物理分离</div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-accent" id="submitAnswer"><i class="fas fa-paper-plane"></i> 提交答案</button>
+                            <button class="btn" id="nextQuestion"><i class="fas fa-arrow-right"></i> 下一题</button>
+                        </div>
+                        
+                        <div class="quiz-result" id="quizResult">
+                            ✅ 回答正确！获得 25 XP 和 10 金币！
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fas fa-skull"></i> 知识魔王挑战</h2>
+                    <p>挑战代表DSE不同等级的魔王，证明你的化学实力！</p>
+                    
+                    <div class="bosses-container">
+                        <div class="boss-card defeated">
+                            <div class="boss-level">U</div>
+                            <div class="boss-name">混沌之源</div>
+                            <div class="boss-status">已击败</div>
+                        </div>
+                        
+                        <div class="boss-card defeated">
+                            <div class="boss-level">1</div>
+                            <div class="boss-name">模糊之影</div>
+                            <div class="boss-status">已击败</div>
+                        </div>
+                        
+                        <div class="boss-card defeated">
+                            <div class="boss-level">2</div>
+                            <div class="boss-name">结构之惑</div>
+                            <div class="boss-status">已击败</div>
+                        </div>
+                        
+                        <div class="boss-card defeated">
+                            <div class="boss-level">3</div>
+                            <div class="boss-name">变化之律</div>
+                            <div class="boss-status">已击败</div>
+                        </div>
+                        
+                        <div class="boss-card">
+                            <div class="boss-level">4</div>
+                            <div class="boss-name">分析之眼</div>
+                            <div class="boss-status">未挑战</div>
+                        </div>
+                        
+                        <div class="boss-card">
+                            <div class="boss-level">5**</div>
+                            <div class="boss-name">创新之巅</div>
+                            <div class="boss-status">未挑战</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fas fa-user"></i> 角色状态</h2>
+                    
+                    <div class="player-stats">
+                        <div class="stat">
+                            <div class="stat-value">15</div>
+                            <div class="stat-label">等级</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">875</div>
+                            <div class="stat-label">经验值</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">420</div>
+                            <div class="stat-label">金币</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">68</div>
+                            <div class="stat-label">攻击力</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">45</div>
+                            <div class="stat-label">防御力</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">82</div>
+                            <div class="stat-label">实验精度</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>升级进度</span>
+                            <span>875/1500</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn"><i class="fas fa-sync-alt"></i> 学习报告</button>
+                        <button class="btn"><i class="fas fa-cog"></i> 设置</button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fas fa-award"></i> 成就系统</h2>
+                    <p>完成特殊目标解锁独特成就和奖励！</p>
+                    
+                    <div class="achievements-grid">
+                        <div class="achievement-card unlocked">
+                            <div class="achievement-icon"><i class="fas fa-bolt"></i></div>
+                            <div class="achievement-title">电解大师</div>
+                            <div class="achievement-desc">完成10个电解题目</div>
+                        </div>
+                        
+                        <div class="achievement-card unlocked">
+                            <div class="achievement-icon"><i class="fas fa-calculator"></i></div>
+                            <div class="achievement-title">计算达人</div>
+                            <div class="achievement-desc">连续10题计算全对</div>
+                        </div>
+                        
+                        <div class="achievement-card">
+                            <div class="achievement-icon"><i class="fas fa-vial"></i></div>
+                            <div class="achievement-title">实验零失误</div>
+                            <div class="achievement-desc">完成所有实验模拟</div>
+                        </div>
+                        
+                        <div class="achievement-card">
+                            <div class="achievement-icon"><i class="fas fa-crown"></i></div>
+                            <div class="achievement-title">传奇炼金师</div>
+                            <div class="achievement-desc">击败所有知识魔王</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 class="panel-title"><i class="fas fa-tools"></i> 实验装备</h2>
+                    <p>使用金币购买装备提升你的化学能力！</p>
+                    
+                    <div class="lab-equipment">
+                        <div class="equipment-card">
+                            <div class="equipment-name">精密滴定管</div>
+                            <div class="equipment-stats">+8 攻击力</div>
+                            <div class="equipment-stats">+5% 实验精度</div>
+                        </div>
+                        
+                        <div class="equipment-card">
+                            <div class="equipment-name">高效本生灯</div>
+                            <div class="equipment-stats">+12 攻击力</div>
+                            <div class="equipment-stats">加速反应任务</div>
+                        </div>
+                        
+                        <div class="equipment-card">
+                            <div class="equipment-name">电解大师手套</div>
+                            <div class="equipment-stats">+15 攻击力</div>
+                            <div class="equipment-stats">+10 防御力</div>
+                        </div>
+                        
+                        <div class="equipment-card">
+                            <div class="equipment-name">化学典籍</div>
+                            <div class="equipment-stats">+10 防御力</div>
+                            <div class="equipment-stats">提升理论题得分</div>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-accent"><i class="fas fa-shopping-cart"></i> 进入装备商店</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟游戏数据
+        const gameData = {
+            player: {
+                name: "化学学徒",
+                level: 15,
+                exp: 875,
+                coins: 420,
+                attack: 68,
+                defense: 45,
+                accuracy: 82,
+                topicsCompleted: [3],
+                bossesDefeated: ["U", "1", "2", "3"],
+                achievements: ["electrolysis", "calculation"]
+            },
+            currentQuestion: 0,
+            questions: [
+                {
+                    question: "铁矿石主要用哪种方法提取铁？",
+                    options: ["A. 电解", "B. 碳还原", "C. 热分解", "D. 物理分离"],
+                    answer: "B",
+                    explanation: "铁矿石通常使用碳还原法提取铁，在高温下用一氧化碳还原氧化铁。"
+                },
+                {
+                    question: "以下哪种离子会使水变硬？",
+                    options: ["A. Na⁺", "B. K⁺", "C. Mg²⁺", "D. H⁺"],
+                    answer: "C",
+                    explanation: "镁离子(Mg²⁺)和钙离子(Ca²⁺)是导致水硬度的主要离子。"
+                },
+                {
+                    question: "乙醇完全燃烧的产物是什么？",
+                    options: ["A. CO + H₂O", "B. CO₂ + H₂", "C. CO₂ + H₂O", "D. C + H₂O"],
+                    answer: "C",
+                    explanation: "乙醇(C₂H₅OH)完全燃烧产生二氧化碳(CO₂)和水(H₂O)。"
+                }
+            ]
+        };
+        
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', function() {
+            // 课题卡片点击事件
+            const topicCards = document.querySelectorAll('.topic-card');
+            topicCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const topicId = this.getAttribute('data-topic');
+                    startTopicChallenge(topicId);
+                });
+            });
+            
+            // 答题选项点击事件
+            const quizOptions = document.querySelectorAll('.quiz-option');
+            quizOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除之前的选择
+                    quizOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // 标记当前选择
+                    this.classList.add('selected');
+                });
+            });
+            
+            // 提交答案按钮事件
+            document.getElementById('submitAnswer').addEventListener('click', function() {
+                const selectedOption = document.querySelector('.quiz-option.selected');
+                if (!selectedOption) {
+                    alert('请选择一个答案！');
+                    return;
+                }
+                
+                const selectedValue = selectedOption.getAttribute('data-option');
+                const currentQuestion = gameData.questions[gameData.currentQuestion];
+                
+                // 显示结果
+                quizOptions.forEach(option => {
+                    const optionValue = option.getAttribute('data-option');
+                    if (optionValue === currentQuestion.answer) {
+                        option.classList.add('correct');
+                    } else if (optionValue === selectedValue) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                // 显示结果消息
+                const resultDiv = document.getElementById('quizResult');
+                if (selectedValue === currentQuestion.answer) {
+                    resultDiv.textContent = '✅ 回答正确！获得 25 XP 和 10 金币！';
+                    resultDiv.style.color = 'var(--success)';
+                } else {
+                    resultDiv.textContent = `❌ 回答错误！正确答案是 ${currentQuestion.answer}。${currentQuestion.explanation}`;
+                    resultDiv.style.color = 'var(--danger)';
+                }
+                resultDiv.style.display = 'block';
+                
+                // 禁用选项
+                quizOptions.forEach(option => {
+                    option.style.pointerEvents = 'none';
+                });
+            });
+            
+            // 下一题按钮事件
+            document.getElementById('nextQuestion').addEventListener('click', function() {
+                gameData.currentQuestion = (gameData.currentQuestion + 1) % gameData.questions.length;
+                loadQuestion(gameData.currentQuestion);
+            });
+        });
+        
+        // 开始课题挑战
+        function startTopicChallenge(topicId) {
+            // 重置问题索引
+            gameData.currentQuestion = 0;
+            
+            // 加载第一个问题
+            loadQuestion(gameData.currentQuestion);
+            
+            // 滚动到问题区域
+            document.getElementById('quizSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 加载问题
+        function loadQuestion(index) {
+            const question = gameData.questions[index];
+            
+            // 更新问题文本
+            document.getElementById('question').textContent = question.question;
+            
+            // 更新选项
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach((option, i) => {
+                option.textContent = question.options[i];
+                option.setAttribute('data-option', question.options[i].charAt(0));
+                
+                // 重置样式
+                option.className = 'quiz-option';
+                option.classList.remove('selected', 'correct', 'incorrect');
+                option.style.pointerEvents = 'auto';
+            });
+            
+            // 隐藏结果
+            document.getElementById('quizResult').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
