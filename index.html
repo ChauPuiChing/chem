@@ -1,817 +1,979 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, BookOpen, Sword, ShoppingCart, BarChart3, Save, LogOut, Star, Coins, Zap, Shield, Target, ChevronRight, Award, Crown } from 'lucide-react';
-
-const ChemistryRPG = () => {
-  // 初始玩家數據
-  const initialPlayer = {
-    name: "見習化學家",
-    level: 1,
-    exp: 0,
-    exp_to_next: 100,
-    coins: 50,
-    attack: 10,
-    defense: 5,
-    accuracy: 60,
-    skill_points: 0,
-    title: "化學學徒",
-    equipment: {},
-    achievements: [],
-    topics_completed: [],
-    bosses_defeated: [],
-    daily_streak: 0,
-    total_questions: 0,
-    correct_answers: 0
-  };
-
-  // 課題數據
-  const initialTopics = {
-    "1": { name: "地球資源", icon: "🌍", progress: 0, total: 5 },
-    "2": { name: "微觀世界", icon: "⚛️", progress: 0, total: 5 },
-    "3": { name: "金屬", icon: "💎", progress: 0, total: 5 },
-    "4": { name: "酸鹼鹽", icon: "🧪", progress: 0, total: 5 },
-    "5": { name: "化石燃料", icon: "⛽", progress: 0, total: 5 },
-    "6": { name: "氧化還原反應", icon: "🔋", progress: 0, total: 5 },
-    "7": { name: "化學反應與能量", icon: "⚡", progress: 0, total: 5 },
-    "8": { name: "反應速率與平衡", icon: "⚖️", progress: 0, total: 5 },
-    "9": { name: "化學世界中的規律", icon: "📊", progress: 0, total: 5 }
-  };
-
-  // 魔王數據
-  const initialBosses = {
-    "U": { name: "混沌之源", level: "U", defeated: false, hp: 100, difficulty: 1 },
-    "1": { name: "模糊之影", level: "1", defeated: false, hp: 150, difficulty: 2 },
-    "2": { name: "結構之惑", level: "2", defeated: false, hp: 200, difficulty: 3 },
-    "3": { name: "變化之律", level: "3", defeated: false, hp: 250, difficulty: 4 },
-    "4": { name: "分析之眼", level: "4", defeated: false, hp: 300, difficulty: 5 },
-    "5": { name: "綜合之網", level: "5", defeated: false, hp: 400, difficulty: 6 },
-    "5*": { name: "精通之巔", level: "5*", defeated: false, hp: 500, difficulty: 7 },
-    "5**": { name: "創新之巔", level: "5**", defeated: false, hp: 600, difficulty: 8 }
-  };
-
-  // 裝備商店
-  const equipmentShop = {
-    "精密滴定管": { price: 100, attack: 8, accuracy: 5, description: "+8攻擊力, +5%實驗精度" },
-    "高效本生燈": { price: 150, attack: 12, description: "+12攻擊力, 加速反應任務" },
-    "電解大師手套": { price: 200, attack: 15, defense: 10, description: "+15攻擊力, +10防禦力" },
-    "化學典籍": { price: 120, defense: 10, accuracy: 8, description: "+10防禦力, 提升理論題得分" },
-    "護目鏡": { price: 80, defense: 5, accuracy: 10, description: "+5防禦力, +10%實驗精度" },
-    "計算神器": { price: 250, attack: 20, accuracy: 15, description: "+20攻擊力, +15%計算準確度" }
-  };
-
-  // 成就系統
-  const initialAchievements = {
-    "電解大師": { description: "完成10個電解相關題目", reward: 50, unlocked: false },
-    "計算達人": { description: "連續10題計算全對", reward: 100, unlocked: false },
-    "實驗零失誤": { description: "完成所有實驗模擬無錯誤", reward: 200, unlocked: false },
-    "百題斬": { description: "回答100道題目", reward: 150, unlocked: false },
-    "知識收集者": { description: "完成5個課題", reward: 300, unlocked: false },
-    "魔王終結者": { description: "擊敗所有知識魔王", reward: 500, unlocked: false },
-    "完美主義者": { description: "答題準確率達到90%", reward: 250, unlocked: false }
-  };
-
-  // 題庫
-  const questionBank = {
-    "1": [
-      {
-        question: "鐵礦石主要用哪種方法提取鐵？",
-        options: ["A. 電解", "B. 碳還原", "C. 熱分解", "D. 物理分離"],
-        answer: "B",
-        explanation: "鐵礦石通常使用碳還原法提取鐵，在高溫下用一氧化碳還原氧化鐵。",
-        topic: "金屬提取",
-        difficulty: 2
-      },
-      {
-        question: "以下哪種氣體會導致溫室效應？",
-        options: ["A. 氧氣", "B. 氮氣", "C. 二氧化碳", "D. 氫氣"],
-        answer: "C",
-        explanation: "二氧化碳是主要的溫室氣體之一，能吸收地面輻射的紅外線。",
-        topic: "環境化學",
-        difficulty: 1
-      },
-      {
-        question: "石灰石的主要成分是什麼？",
-        options: ["A. CaO", "B. CaCO₃", "C. Ca(OH)₂", "D. CaSO₄"],
-        answer: "B",
-        explanation: "石灰石的主要成分是碳酸鈣(CaCO₃)。",
-        topic: "礦物",
-        difficulty: 1
-      },
-      {
-        question: "煤炭燃燒會產生哪種有害氣體？",
-        options: ["A. O₂", "B. N₂", "C. SO₂", "D. H₂"],
-        answer: "C",
-        explanation: "煤炭含有硫化合物，燃燒時會產生二氧化硫，導致酸雨。",
-        topic: "燃料化學",
-        difficulty: 2
-      },
-      {
-        question: "海水中含量最多的鹽類是？",
-        options: ["A. NaCl", "B. MgCl₂", "C. CaCl₂", "D. KCl"],
-        answer: "A",
-        explanation: "海水中含量最多的鹽類是氯化鈉(NaCl)，約佔總鹽分的77%。",
-        topic: "天然資源",
-        difficulty: 2
-      }
-    ],
-    "2": [
-      {
-        question: "原子核由什麼粒子組成？",
-        options: ["A. 質子和電子", "B. 質子和中子", "C. 中子和電子", "D. 只有質子"],
-        answer: "B",
-        explanation: "原子核由質子和中子組成，電子在核外運動。",
-        topic: "原子結構",
-        difficulty: 1
-      },
-      {
-        question: "碳-12原子的質量數是多少？",
-        options: ["A. 6", "B. 12", "C. 18", "D. 24"],
-        answer: "B",
-        explanation: "質量數等於質子數加中子數，碳-12有6個質子和6個中子。",
-        topic: "原子質量",
-        difficulty: 2
-      }
-    ],
-    "3": [
-      {
-        question: "金屬具有光澤是因為？",
-        options: ["A. 電子雲反射光線", "B. 原子振動", "C. 離子排列", "D. 化學反應"],
-        answer: "A",
-        explanation: "金屬的自由電子能有效反射光線，因此具有金屬光澤。",
-        topic: "金屬性質",
-        difficulty: 2
-      },
-      {
-        question: "鋁在空氣中不易腐蝕是因為？",
-        options: ["A. 鋁很穩定", "B. 表面形成氧化膜", "C. 鋁不活潑", "D. 鋁不導電"],
-        answer: "B",
-        explanation: "鋁表面會形成緻密的氧化鋁薄膜，阻止進一步氧化。",
-        topic: "金屬腐蝕",
-        difficulty: 2
-      }
-    ],
-    "4": [
-      {
-        question: "以下哪種物質是強酸？",
-        options: ["A. 醋酸", "B. 硫酸", "C. 碳酸", "D. 硼酸"],
-        answer: "B",
-        explanation: "硫酸是常見的強酸，在水中完全電離。",
-        topic: "酸的強度",
-        difficulty: 1
-      },
-      {
-        question: "pH值為7的溶液是？",
-        options: ["A. 酸性", "B. 鹼性", "C. 中性", "D. 無法確定"],
-        answer: "C",
-        explanation: "pH=7表示[H⁺]=[OH⁻]，溶液呈中性。",
-        topic: "pH值",
-        difficulty: 1
-      }
-    ]
-  };
-
-  // 狀態管理
-  const [player, setPlayer] = useState(initialPlayer);
-  const [topics, setTopics] = useState(initialTopics);
-  const [bosses, setBosses] = useState(initialBosses);
-  const [achievements, setAchievements] = useState(initialAchievements);
-  const [currentView, setCurrentView] = useState('main');
-  const [currentChallenge, setCurrentChallenge] = useState(null);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState('');
-  const [showResult, setShowResult] = useState(false);
-  const [challengeQuestions, setChallengeQuestions] = useState([]);
-  const [challengeResults, setChallengeResults] = useState({ correct: 0, total: 0 });
-  const [message, setMessage] = useState('');
-
-  // 載入遊戲數據
-  useEffect(() => {
-    const savedGame = localStorage.getItem('dse-chemistry-rpg');
-    if (savedGame) {
-      try {
-        const gameData = JSON.parse(savedGame);
-        setPlayer(gameData.player || initialPlayer);
-        setTopics(gameData.topics || initialTopics);
-        setBosses(gameData.bosses || initialBosses);
-        setAchievements(gameData.achievements || initialAchievements);
-      } catch (e) {
-        console.error('載入遊戲失敗:', e);
-      }
-    }
-  }, []);
-
-  // 儲存遊戲
-  const saveGame = () => {
-    const gameData = {
-      player,
-      topics,
-      bosses,
-      achievements,
-      lastSave: new Date().toISOString()
-    };
-    localStorage.setItem('dse-chemistry-rpg', JSON.stringify(gameData));
-    setMessage('✅ 遊戲進度已儲存！');
-    setTimeout(() => setMessage(''), 3000);
-  };
-
-  // 升級檢查
-  const checkLevelUp = (newPlayer) => {
-    let updatedPlayer = { ...newPlayer };
-    
-    while (updatedPlayer.exp >= updatedPlayer.exp_to_next) {
-      updatedPlayer.exp -= updatedPlayer.exp_to_next;
-      updatedPlayer.level += 1;
-      updatedPlayer.exp_to_next = Math.floor(updatedPlayer.exp_to_next * 1.5);
-      updatedPlayer.attack += 5;
-      updatedPlayer.defense += 3;
-      updatedPlayer.accuracy += 2;
-      updatedPlayer.skill_points += 1;
-      
-      // 更新稱號
-      if (updatedPlayer.level >= 20) updatedPlayer.title = "傳奇煉金師";
-      else if (updatedPlayer.level >= 15) updatedPlayer.title = "元素掌控者";
-      else if (updatedPlayer.level >= 10) updatedPlayer.title = "傑出分析者";
-      else if (updatedPlayer.level >= 5) updatedPlayer.title = "合格實驗員";
-      
-      setMessage(`🎉 恭喜升級到 ${updatedPlayer.level} 級！獲得技能點 +1`);
-    }
-    
-    return updatedPlayer;
-  };
-
-  // 檢查成就
-  const checkAchievements = (newPlayer) => {
-    let updatedAchievements = { ...achievements };
-    let newUnlocked = [];
-    
-    // 百題斬
-    if (newPlayer.total_questions >= 100 && !updatedAchievements['百題斬'].unlocked) {
-      updatedAchievements['百題斬'].unlocked = true;
-      newUnlocked.push('百題斬');
-    }
-    
-    // 完美主義者
-    if (newPlayer.total_questions >= 20 && 
-        (newPlayer.correct_answers / newPlayer.total_questions) >= 0.9 &&
-        !updatedAchievements['完美主義者'].unlocked) {
-      updatedAchievements['完美主義者'].unlocked = true;
-      newUnlocked.push('完美主義者');
-    }
-    
-    // 處理新成就獎勵
-    if (newUnlocked.length > 0) {
-      let totalReward = 0;
-      newUnlocked.forEach(achievement => {
-        totalReward += updatedAchievements[achievement].reward;
-      });
-      newPlayer.coins += totalReward;
-      setMessage(`🏆 獲得成就：${newUnlocked.join('、')}！獎勵 ${totalReward} 金幣`);
-    }
-    
-    setAchievements(updatedAchievements);
-    return newPlayer;
-  };
-
-  // 開始課題挑戰
-  const startTopicChallenge = (topicId) => {
-    const questions = questionBank[topicId] || [];
-    setChallengeQuestions(questions);
-    setCurrentChallenge(topicId);
-    setCurrentQuestion(0);
-    setSelectedAnswer('');
-    setShowResult(false);
-    setChallengeResults({ correct: 0, total: questions.length });
-    setCurrentView('challenge');
-  };
-
-  // 提交答案
-  const submitAnswer = () => {
-    if (!selectedAnswer) return;
-    
-    const question = challengeQuestions[currentQuestion];
-    const isCorrect = selectedAnswer === question.answer;
-    
-    let newPlayer = { ...player };
-    newPlayer.total_questions += 1;
-    
-    if (isCorrect) {
-      newPlayer.correct_answers += 1;
-      const expGain = question.difficulty * 10;
-      const coinGain = question.difficulty * 2;
-      newPlayer.exp += expGain;
-      newPlayer.coins += coinGain;
-      setChallengeResults(prev => ({ ...prev, correct: prev.correct + 1 }));
-    }
-    
-    newPlayer = checkLevelUp(newPlayer);
-    newPlayer = checkAchievements(newPlayer);
-    setPlayer(newPlayer);
-    setShowResult(true);
-  };
-
-  // 下一題
-  const nextQuestion = () => {
-    if (currentQuestion < challengeQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer('');
-      setShowResult(false);
-    } else {
-      // 挑戰完成
-      const topicId = currentChallenge;
-      const newTopics = { ...topics };
-      newTopics[topicId].progress = Math.min(
-        newTopics[topicId].progress + challengeResults.correct,
-        newTopics[topicId].total
-      );
-      setTopics(newTopics);
-      
-      const accuracy = (challengeResults.correct / challengeResults.total) * 100;
-      if (accuracy >= 80) {
-        const bonusExp = 50;
-        const bonusCoins = 20;
-        let newPlayer = { ...player };
-        newPlayer.exp += bonusExp;
-        newPlayer.coins += bonusCoins;
-        newPlayer = checkLevelUp(newPlayer);
-        setPlayer(newPlayer);
-        setMessage(`🎉 優秀表現獎勵：${bonusExp} 經驗值，${bonusCoins} 金幣`);
-      }
-      
-      setCurrentView('main');
-    }
-  };
-
-  // 購買裝備
-  const buyEquipment = (itemName, itemData) => {
-    if (player.coins >= itemData.price && !player.equipment[itemName]) {
-      let newPlayer = { ...player };
-      newPlayer.coins -= itemData.price;
-      newPlayer.equipment[itemName] = itemData;
-      
-      if (itemData.attack) newPlayer.attack += itemData.attack;
-      if (itemData.defense) newPlayer.defense += itemData.defense;
-      if (itemData.accuracy) newPlayer.accuracy += itemData.accuracy;
-      
-      setPlayer(newPlayer);
-      setMessage(`✅ 成功購買 ${itemName}！`);
-      setTimeout(() => setMessage(''), 3000);
-    } else if (player.equipment[itemName]) {
-      setMessage('❌ 你已經擁有這件裝備了！');
-      setTimeout(() => setMessage(''), 3000);
-    } else {
-      setMessage('❌ 金幣不足！');
-      setTimeout(() => setMessage(''), 3000);
-    }
-  };
-
-  // 進度條組件
-  const ProgressBar = ({ current, max, className = '' }) => {
-    const percentage = (current / max) * 100;
-    return (
-      <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
-        <div 
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    );
-  };
-
-  // 主界面渲染
-  const renderMainView = () => (
-    <div className="space-y-6">
-      {/* 玩家狀態卡片 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-bold">{player.name}</h2>
-            <p className="text-blue-100">{player.title}</p>
-          </div>
-          <div className="text-right">
-            <div className="flex items-center gap-2 mb-1">
-              <Crown className="w-5 h-5" />
-              <span className="text-xl font-bold">等級 {player.level}</span>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSE化學征途：元素煉金師</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .progress-bar {
+            transition: width 0.3s ease-in-out;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- 遊戲容器 -->
+    <div id="game-container">
+        <!-- 標題 -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6 shadow-lg">
+            <div class="max-w-4xl mx-auto text-center">
+                <h1 class="text-4xl font-bold mb-2">🧪 DSE化學征途：元素煉金師</h1>
+                <p class="text-blue-100">融合香港DSE化學課程與角色扮演遊戲的沉浸式學習體驗</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Coins className="w-4 h-4" />
-              <span>{player.coins} 金幣</span>
-            </div>
-          </div>
         </div>
-        
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Sword className="w-4 h-4" />
-              <span className="font-medium">攻擊力</span>
-            </div>
-            <span className="text-lg font-bold">{player.attack}</span>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Shield className="w-4 h-4" />
-              <span className="font-medium">防禦力</span>
-            </div>
-            <span className="text-lg font-bold">{player.defense}</span>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Target className="w-4 h-4" />
-              <span className="font-medium">精度</span>
-            </div>
-            <span className="text-lg font-bold">{player.accuracy}%</span>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>經驗值</span>
-            <span>{player.exp}/{player.exp_to_next}</span>
-          </div>
-          <ProgressBar current={player.exp} max={player.exp_to_next} />
-        </div>
-        
-        {player.total_questions > 0 && (
-          <div className="mt-4 text-center">
-            <span className="text-blue-100">
-              答題準確率: {((player.correct_answers / player.total_questions) * 100).toFixed(1)}% 
-              ({player.correct_answers}/{player.total_questions})
-            </span>
-          </div>
-        )}
-      </div>
 
-      {/* 主選單按鈕 */}
-      <div className="grid grid-cols-2 gap-4">
-        <button
-          onClick={() => setCurrentView('topics')}
-          className="flex items-center justify-between p-4 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <BookOpen className="w-6 h-6" />
-            <span className="font-medium">課題挑戰</span>
-          </div>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-        
-        <button
-          onClick={() => setCurrentView('bosses')}
-          className="flex items-center justify-between p-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <Sword className="w-6 h-6" />
-            <span className="font-medium">魔王挑戰</span>
-          </div>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-        
-        <button
-          onClick={() => setCurrentView('shop')}
-          className="flex items-center justify-between p-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <ShoppingCart className="w-6 h-6" />
-            <span className="font-medium">裝備商店</span>
-          </div>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-        
-        <button
-          onClick={() => setCurrentView('achievements')}
-          className="flex items-center justify-between p-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <Trophy className="w-6 h-6" />
-            <span className="font-medium">成就系統</span>
-          </div>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-        
-        <button
-          onClick={() => setCurrentView('report')}
-          className="flex items-center justify-between p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <BarChart3 className="w-6 h-6" />
-            <span className="font-medium">學習報告</span>
-          </div>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-        
-        <button
-          onClick={saveGame}
-          className="flex items-center justify-between p-4 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <Save className="w-6 h-6" />
-            <span className="font-medium">儲存遊戲</span>
-          </div>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
+        <!-- 主要內容區 -->
+        <div class="max-w-4xl mx-auto p-6">
+            <!-- 訊息提示 -->
+            <div id="message-container" class="hidden mb-4 p-4 bg-green-100 border border-green-200 text-green-800 rounded-lg"></div>
 
-  // 課題選單
-  const renderTopicsView = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">🎯 DSE化學課題挑戰</h2>
-        <button
-          onClick={() => setCurrentView('main')}
-          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
-        >
-          返回主選單
-        </button>
-      </div>
-      
-      <div className="grid gap-4">
-        {Object.entries(topics).map(([topicId, topic]) => (
-          <div key={topicId} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{topic.icon}</span>
-                <div>
-                  <h3 className="font-medium">{topic.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    進度: {topic.progress}/{topic.total}
-                    {topic.progress >= topic.total && " ✅已完成"}
-                  </p>
+            <!-- 主選單 -->
+            <div id="main-view" class="animate-fade-in">
+                <!-- 玩家狀態卡片 -->
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg shadow-lg mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 id="player-name" class="text-2xl font-bold">見習化學家</h2>
+                            <p id="player-title" class="text-blue-100">化學學徒</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xl">👑</span>
+                                <span id="player-level" class="text-xl font-bold">等級 1</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">🪙</span>
+                                <span id="player-coins">50 金幣</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div class="text-center">
+                            <div class="flex items-center justify-center gap-1 mb-1">
+                                <span>⚔️</span>
+                                <span class="font-medium">攻擊力</span>
+                            </div>
+                            <span id="player-attack" class="text-lg font-bold">10</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="flex items-center justify-center gap-1 mb-1">
+                                <span>🛡️</span>
+                                <span class="font-medium">防禦力</span>
+                            </div>
+                            <span id="player-defense" class="text-lg font-bold">5</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="flex items-center justify-center gap-1 mb-1">
+                                <span>🎯</span>
+                                <span class="font-medium">精度</span>
+                            </div>
+                            <span id="player-accuracy" class="text-lg font-bold">60%</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>經驗值</span>
+                            <span id="exp-display">0/100</span>
+                        </div>
+                        <div class="w-full bg-white/20 rounded-full h-2">
+                            <div id="exp-bar" class="bg-yellow-400 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div id="accuracy-display" class="mt-4 text-center text-blue-100 hidden">
+                        答題準確率: <span id="accuracy-rate">0%</span> (<span id="correct-total">0/0</span>)
+                    </div>
                 </div>
-              </div>
-              <button
-                onClick={() => startTopicChallenge(topicId)}
-                disabled={!questionBank[topicId]}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
-              >
-                開始挑戰
-              </button>
-            </div>
-            <ProgressBar current={topic.progress} max={topic.total} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
-  // 挑戰界面
-  const renderChallengeView = () => {
-    if (!challengeQuestions.length) return <div>載入中...</div>;
-    
-    const question = challengeQuestions[currentQuestion];
-    
-    return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">
-            {topics[currentChallenge]?.icon} {topics[currentChallenge]?.name}
-          </h2>
-          <span className="text-sm text-gray-600">
-            {currentQuestion + 1}/{challengeQuestions.length}
-          </span>
-        </div>
-        
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {question.topic}
-              </span>
-              <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                難度: {'⭐'.repeat(question.difficulty)}
-              </span>
-            </div>
-            <h3 className="text-lg font-medium mb-4">{question.question}</h3>
-          </div>
-          
-          <div className="space-y-3 mb-6">
-            {question.options.map((option, index) => (
-              <label key={index} className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="answer"
-                  value={option.charAt(0)}
-                  checked={selectedAnswer === option.charAt(0)}
-                  onChange={(e) => setSelectedAnswer(e.target.value)}
-                  disabled={showResult}
-                  className="w-4 h-4 text-blue-600"
-                />
-                <span className={`flex-1 ${showResult && option.charAt(0) === question.answer ? 'text-green-600 font-medium' : ''}`}>
-                  {option}
-                </span>
-                {showResult && option.charAt(0) === question.answer && (
-                  <span className="text-green-600">✓</span>
-                )}
-                {showResult && option.charAt(0) === selectedAnswer && selectedAnswer !== question.answer && (
-                  <span className="text-red-600">✗</span>
-                )}
-              </label>
-            ))}
-          </div>
-          
-          {showResult && (
-            <div className={`p-4 rounded-lg mb-4 ${selectedAnswer === question.answer ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-              <p className={`font-medium mb-2 ${selectedAnswer === question.answer ? 'text-green-800' : 'text-red-800'}`}>
-                {selectedAnswer === question.answer ? '✅ 回答正確！' : `❌ 回答錯誤！正確答案是 ${question.answer}`}
-              </p>
-              <p className="text-gray-700">{question.explanation}</p>
-            </div>
-          )}
-          
-          <div className="flex justify-end">
-            {!showResult ? (
-              <button
-                onClick={submitAnswer}
-                disabled={!selectedAnswer}
-                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
-              >
-                提交答案
-              </button>
-            ) : (
-              <button
-                onClick={nextQuestion}
-                className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
-              >
-                {currentQuestion < challengeQuestions.length - 1 ? '下一題' : '完成挑戰'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
+                <!-- 主選單按鈕 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="showTopics()" class="flex items-center justify-between p-4 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors card-hover">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📚</span>
+                            <span class="font-medium">課題挑戰</span>
+                        </div>
+                        <span class="text-xl">➤</span>
+                    </button>
 
-  // 裝備商店
-  const renderShopView = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">🛒 煉金師裝備商店</h2>
-        <button
-          onClick={() => setCurrentView('main')}
-          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
-        >
-          返回主選單
-        </button>
-      </div>
-      
-      <div className="grid gap-4">
-        {Object.entries(equipmentShop).map(([itemName, itemData]) => (
-          <div key={itemName} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="font-medium mb-1">{itemName}</h3>
-                <p className="text-sm text-gray-600 mb-2">{itemData.description}</p>
-                <div className="flex items-center gap-4">
-                  <span className="font-bold text-yellow-600">{itemData.price} 金幣</span>
-                  {player.equipment[itemName] && (
-                    <span className="text-green-600 font-medium">✅ 已擁有</span>
-                  )}
+                    <button onclick="showBosses()" class="flex items-center justify-between p-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors card-hover">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">👹</span>
+                            <span class="font-medium">魔王挑戰</span>
+                        </div>
+                        <span class="text-xl">➤</span>
+                    </button>
+
+                    <button onclick="showShop()" class="flex items-center justify-between p-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors card-hover">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🛒</span>
+                            <span class="font-medium">裝備商店</span>
+                        </div>
+                        <span class="text-xl">➤</span>
+                    </button>
+
+                    <button onclick="showAchievements()" class="flex items-center justify-between p-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors card-hover">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🏆</span>
+                            <span class="font-medium">成就系統</span>
+                        </div>
+                        <span class="text-xl">➤</span>
+                    </button>
+
+                    <button onclick="showReport()" class="flex items-center justify-between p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors card-hover">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">📊</span>
+                            <span class="font-medium">學習報告</span>
+                        </div>
+                        <span class="text-xl">➤</span>
+                    </button>
+
+                    <button onclick="saveGame()" class="flex items-center justify-between p-4 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors card-hover">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">💾</span>
+                            <span class="font-medium">儲存遊戲</span>
+                        </div>
+                        <span class="text-xl">➤</span>
+                    </button>
                 </div>
-              </div>
-              <button
-                onClick={() => buyEquipment(itemName, itemData)}
-                disabled={player.equipment[itemName] || player.coins < itemData.price}
-                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
-              >
-                {player.equipment[itemName] ? '已擁有' : '購買'}
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
-  // 成就系統
-  const renderAchievementsView = () => {
-    const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
-    const totalCount = Object.keys(achievements).length;
-    
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">🏆 成就系統</h2>
-            <p className="text-gray-600">已解鎖：{unlockedCount}/{totalCount}</p>
-          </div>
-          <button
-            onClick={() => setCurrentView('main')}
-            className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
-          >
-            返回主選單
-          </button>
-        </div>
-        
-        <div className="grid gap-4">
-          {Object.entries(achievements).map(([name, data]) => (
-            <div key={name} className={`border rounded-lg p-4 ${data.unlocked ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{data.unlocked ? '✅' : '🔒'}</span>
-                  <div>
-                    <h3 className="font-medium">{name}</h3>
-                    <p className="text-sm text-gray-600">{data.description}</p>
-                  </div>
+            <!-- 課題選單 -->
+            <div id="topics-view" class="hidden animate-fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold gradient-text">🎯 DSE化學課題挑戰</h2>
+                    <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
                 </div>
-                <span className="font-bold text-yellow-600">{data.reward} 金幣</span>
-              </div>
+                <div id="topics-grid" class="grid gap-4"></div>
             </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
 
-  // 學習報告
-  const renderReportView = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">📊 學習報告</h2>
-        <button
-          onClick={() => setCurrentView('main')}
-          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
-        >
-          返回主選單
-        </button>
-      </div>
-      
-      {/* 總體表現 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <h3 className="text-lg font-medium mb-4">📈 總體表現</h3>
-        {player.total_questions > 0 ? (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{player.total_questions}</div>
-              <div className="text-sm text-gray-600">答題總數</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{player.correct_answers}</div>
-              <div className="text-sm text-gray-600">正確答數</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {((player.correct_answers / player.total_questions) * 100).toFixed(1)}%
-              </div>
-              <div className="text-sm text-gray-600">準確率</div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-gray-500">還沒有答題記錄，開始挑戰吧！</p>
-        )}
-      </div>
-      
-      {/* 課題完成度 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <h3 className="text-lg font-medium mb-4">📚 課題完成度</h3>
-        <div className="space-y-3">
-          {Object.entries(topics).map(([topicId, topic]) => {
-            const percentage = (topic.progress / topic.total) * 100;
-            return (
-              <div key={topicId}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="flex items-center gap-2">
-                    <span>{topic.icon}</span>
-                    <span className="font-medium">{topic.name}</span>
-                  </span>
-                  <span className="text-sm text-gray-600">{percentage.toFixed(0)}%</span>
+            <!-- 挑戰界面 -->
+            <div id="challenge-view" class="hidden animate-fade-in">
+                <div class="max-w-2xl mx-auto space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h2 id="challenge-title" class="text-xl font-bold"></h2>
+                        <span id="question-counter" class="text-sm text-gray-600"></span>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                        <div class="mb-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span id="question-topic" class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded"></span>
+                                <span id="question-difficulty" class="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded"></span>
+                            </div>
+                            <h3 id="question-text" class="text-lg font-medium mb-4"></h3>
+                        </div>
+
+                        <div id="options-container" class="space-y-3 mb-6"></div>
+
+                        <div id="result-container" class="hidden mb-4"></div>
+
+                        <div class="flex justify-end">
+                            <button id="submit-btn" onclick="submitAnswer()" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg transition-colors">提交答案</button>
+                        </div>
+                    </div>
                 </div>
-                <ProgressBar current={topic.progress} max={topic.total} />
-              </div>
-            );
-          })}
+            </div>
+
+            <!-- 裝備商店 -->
+            <div id="shop-view" class="hidden animate-fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold gradient-text">🛒 煉金師裝備商店</h2>
+                    <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
+                </div>
+                <div id="shop-grid" class="grid gap-4"></div>
+            </div>
+
+            <!-- 成就系統 -->
+            <div id="achievements-view" class="hidden animate-fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold gradient-text">🏆 成就系統</h2>
+                        <p id="achievement-progress" class="text-gray-600">已解鎖：0/7</p>
+                    </div>
+                    <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
+                </div>
+                <div id="achievements-grid" class="grid gap-4"></div>
+            </div>
+
+            <!-- 學習報告 -->
+            <div id="report-view" class="hidden animate-fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold gradient-text">📊 學習報告</h2>
+                    <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
+                </div>
+
+                <!-- 總體表現 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+                    <h3 class="text-lg font-medium mb-4">📈 總體表現</h3>
+                    <div id="overall-stats" class="grid grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <div id="total-questions" class="text-2xl font-bold text-blue-600">0</div>
+                            <div class="text-sm text-gray-600">答題總數</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="correct-answers" class="text-2xl font-bold text-green-600">0</div>
+                            <div class="text-sm text-gray-600">正確答數</div>
+                        </div>
+                        <div class="text-center">
+                            <div id="accuracy-percentage" class="text-2xl font-bold text-purple-600">0%</div>
+                            <div class="text-sm text-gray-600">準確率</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 課題完成度 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                    <h3 class="text-lg font-medium mb-4">📚 課題完成度</h3>
+                    <div id="topic-progress" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- 魔王挑戰 -->
+            <div id="bosses-view" class="hidden animate-fade-in">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold gradient-text">👹 知識魔王挑戰</h2>
+                    <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
+                </div>
+                <div class="text-center p-8 bg-white border border-gray-200 rounded-lg">
+                    <div class="text-6xl mb-4">🚧</div>
+                    <h3 class="text-xl font-bold mb-2">功能開發中</h3>
+                    <p class="text-gray-600">魔王挑戰系統即將上線，敬請期待！</p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  );
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      {/* 標題 */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6 shadow-lg">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-2">🧪 DSE化學征途：元素煉金師</h1>
-          <p className="text-center text-blue-100">融合香港DSE化學課程與角色扮演遊戲的沉浸式學習體驗</p>
-        </div>
-      </div>
+    <script>
+        // 遊戲數據
+        let gameData = {
+            player: {
+                name: "見習化學家",
+                level: 1,
+                exp: 0,
+                exp_to_next: 100,
+                coins: 50,
+                attack: 10,
+                defense: 5,
+                accuracy: 60,
+                skill_points: 0,
+                title: "化學學徒",
+                equipment: {},
+                achievements: [],
+                topics_completed: [],
+                total_questions: 0,
+                correct_answers: 0
+            },
+            topics: {
+                "1": { name: "地球資源", icon: "🌍", progress: 0, total: 5 },
+                "2": { name: "微觀世界", icon: "⚛️", progress: 0, total: 5 },
+                "3": { name: "金屬", icon: "💎", progress: 0, total: 5 },
+                "4": { name: "酸鹼鹽", icon: "🧪", progress: 0, total: 5 },
+                "5": { name: "化石燃料", icon: "⛽", progress: 0, total: 5 },
+                "6": { name: "氧化還原反應", icon: "🔋", progress: 0, total: 5 },
+                "7": { name: "化學反應與能量", icon: "⚡", progress: 0, total: 5 },
+                "8": { name: "反應速率與平衡", icon: "⚖️", progress: 0, total: 5 },
+                "9": { name: "化學世界中的規律", icon: "📊", progress: 0, total: 5 }
+            },
+            achievements: {
+                "電解大師": { description: "完成10個電解相關題目", reward: 50, unlocked: false },
+                "計算達人": { description: "連續10題計算全對", reward: 100, unlocked: false },
+                "實驗零失誤": { description: "完成所有實驗模擬無錯誤", reward: 200, unlocked: false },
+                "百題斬": { description: "回答100道題目", reward: 150, unlocked: false },
+                "知識收集者": { description: "完成5個課題", reward: 300, unlocked: false },
+                "魔王終結者": { description: "擊敗所有知識魔王", reward: 500, unlocked: false },
+                "完美主義者": { description: "答題準確率達到90%", reward: 250, unlocked: false }
+            }
+        };
 
-      {/* 主要內容 */}
-      <div className="max-w-4xl mx-auto p-6">
-        {/* 訊息提示 */}
-        {message && (
-          <div className="mb-4 p-4 bg-green-100 border border-green-200 text-green-800 rounded-lg">
-            {message}
-          </div>
-        )}
+        // 題庫
+        const questionBank = {
+            "1": [
+                {
+                    question: "鐵礦石主要用哪種方法提取鐵？",
+                    options: ["A. 電解", "B. 碳還原", "C. 熱分解", "D. 物理分離"],
+                    answer: "B",
+                    explanation: "鐵礦石通常使用碳還原法提取鐵，在高溫下用一氧化碳還原氧化鐵。",
+                    topic: "金屬提取",
+                    difficulty: 2
+                },
+                {
+                    question: "以下哪種氣體會導致溫室效應？",
+                    options: ["A. 氧氣", "B. 氮氣", "C. 二氧化碳", "D. 氫氣"],
+                    answer: "C",
+                    explanation: "二氧化碳是主要的溫室氣體之一，能吸收地面輻射的紅外線。",
+                    topic: "環境化學",
+                    difficulty: 1
+                },
+                {
+                    question: "石灰石的主要成分是什麼？",
+                    options: ["A. CaO", "B. CaCO₃", "C. Ca(OH)₂", "D. CaSO₄"],
+                    answer: "B",
+                    explanation: "石灰石的主要成分是碳酸鈣(CaCO₃)。",
+                    topic: "礦物",
+                    difficulty: 1
+                },
+                {
+                    question: "煤炭燃燒會產生哪種有害氣體？",
+                    options: ["A. O₂", "B. N₂", "C. SO₂", "D. H₂"],
+                    answer: "C",
+                    explanation: "煤炭含有硫化合物，燃燒時會產生二氧化硫，導致酸雨。",
+                    topic: "燃料化學",
+                    difficulty: 2
+                },
+                {
+                    question: "海水中含量最多的鹽類是？",
+                    options: ["A. NaCl", "B. MgCl₂", "C. CaCl₂", "D. KCl"],
+                    answer: "A",
+                    explanation: "海水中含量最多的鹽類是氯化鈉(NaCl)，約佔總鹽分的77%。",
+                    topic: "天然資源",
+                    difficulty: 2
+                }
+            ],
+            "2": [
+                {
+                    question: "原子核由什麼粒子組成？",
+                    options: ["A. 質子和電子", "B. 質子和中子", "C. 中子和電子", "D. 只有質子"],
+                    answer: "B",
+                    explanation: "原子核由質子和中子組成，電子在核外運動。",
+                    topic: "原子結構",
+                    difficulty: 1
+                },
+                {
+                    question: "碳-12原子的質量數是多少？",
+                    options: ["A. 6", "B. 12", "C. 18", "D. 24"],
+                    answer: "B",
+                    explanation: "質量數等於質子數加中子數，碳-12有6個質子和6個中子。",
+                    topic: "原子質量",
+                    difficulty: 2
+                },
+                {
+                    question: "電子在原子中的排列遵循什麼原理？",
+                    options: ["A. 能量最高原理", "B. 能量最低原理", "C. 隨機排列", "D. 密度最大原理"],
+                    answer: "B",
+                    explanation: "電子在原子中會優先佔據能量較低的軌域，這是能量最低原理。",
+                    topic: "電子結構",
+                    difficulty: 2
+                },
+                {
+                    question: "同位素是指具有相同什麼數目的原子？",
+                    options: ["A. 質量數", "B. 中子數", "C. 質子數", "D. 電子數"],
+                    answer: "C",
+                    explanation: "同位素是指質子數相同但中子數不同的原子。",
+                    topic: "同位素",
+                    difficulty: 2
+                },
+                {
+                    question: "原子的化學性質主要由什麼決定？",
+                    options: ["A. 質子數", "B. 中子數", "C. 最外層電子", "D. 原子質量"],
+                    answer: "C",
+                    explanation: "原子的化學性質主要由最外層電子數決定。",
+                    topic: "化學性質",
+                    difficulty: 2
+                }
+            ],
+            "3": [
+                {
+                    question: "金屬具有光澤是因為？",
+                    options: ["A. 電子雲反射光線", "B. 原子振動", "C. 離子排列", "D. 化學反應"],
+                    answer: "A",
+                    explanation: "金屬的自由電子能有效反射光線，因此具有金屬光澤。",
+                    topic: "金屬性質",
+                    difficulty: 2
+                },
+                {
+                    question: "鋁在空氣中不易腐蝕是因為？",
+                    options: ["A. 鋁很穩定", "B. 表面形成氧化膜", "C. 鋁不活潑", "D. 鋁不導電"],
+                    answer: "B",
+                    explanation: "鋁表面會形成緻密的氧化鋁薄膜，阻止進一步氧化。",
+                    topic: "金屬腐蝕",
+                    difficulty: 2
+                },
+                {
+                    question: "金屬的活性順序中，最活潑的是？",
+                    options: ["A. 鐵", "B. 鋅", "C. 鉀", "D. 銅"],
+                    answer: "C",
+                    explanation: "在金屬活性順序中，鉀是最活潑的金屬之一。",
+                    topic: "金屬活性",
+                    difficulty: 2
+                },
+                {
+                    question: "合金比純金屬更堅硬是因為？",
+                    options: ["A. 質量更大", "B. 原子排列被打亂", "C. 密度更高", "D. 溫度更高"],
+                    answer: "B",
+                    explanation: "合金中不同大小的原子打亂了金屬的規則排列，使其更堅硬。",
+                    topic: "合金",
+                    difficulty: 2
+                },
+                {
+                    question: "電鍍的原理是？",
+                    options: ["A. 物理沉積", "B. 電解", "C. 化學反應", "D. 熱處理"],
+                    answer: "B",
+                    explanation: "電鍍是利用電解原理，在金屬表面沉積另一種金屬。",
+                    topic: "電鍍",
+                    difficulty: 2
+                }
+            ],
+            "4": [
+                {
+                    question: "以下哪種物質是強酸？",
+                    options: ["A. 醋酸", "B. 硫酸", "C. 碳酸", "D. 硼酸"],
+                    answer: "B",
+                    explanation: "硫酸是常見的強酸，在水中完全電離。",
+                    topic: "酸的強度",
+                    difficulty: 1
+                },
+                {
+                    question: "pH值為7的溶液是？",
+                    options: ["A. 酸性", "B. 鹼性", "C. 中性", "D. 無法確定"],
+                    answer: "C",
+                    explanation: "pH=7表示[H⁺]=[OH⁻]，溶液呈中性。",
+                    topic: "pH值",
+                    difficulty: 1
+                },
+                {
+                    question: "氫氧化鈉的化學式是？",
+                    options: ["A. NaOH", "B. Na₂O", "C. NaCl", "D. Na₂SO₄"],
+                    answer: "A",
+                    explanation: "氫氧化鈉的化學式是NaOH，是常見的強鹼。",
+                    topic: "鹼類",
+                    difficulty: 1
+                },
+                {
+                    question: "鹽酸與大理石反應會產生什麼氣體？",
+                    options: ["A. 氫氣", "B. 氧氣", "C. 二氧化碳", "D. 氮氣"],
+                    answer: "C",
+                    explanation: "鹽酸與碳酸鈣(大理石)反應產生二氧化碳氣體。",
+                    topic: "酸鹼反應",
+                    difficulty: 2
+                },
+                {
+                    question: "滴定實驗中，指示劑的作用是？",
+                    options: ["A. 加速反應", "B. 顯示終點", "C. 提供氫離子", "D. 中和溶液"],
+                    answer: "B",
+                    explanation: "指示劑在滴定中用來顯示反應的終點。",
+                    topic: "滴定",
+                    difficulty: 2
+                }
+            ]
+        };
 
-        {/* 根據當前視圖渲染不同內容 */}
-        {currentView === 'main' && renderMainView()}
-        {currentView === 'topics' && renderTopicsView()}
-        {currentView === 'challenge' && renderChallengeView()}
-        {currentView === 'shop' && renderShopView()}
-        {currentView === 'achievements' && renderAchievementsView()}
-        {currentView === 'report' && renderReportView()}
-      </div>
-    </div>
-  );
-};
+        // 裝備商店
+        const equipmentShop = {
+            "精密滴定管": { price: 100, attack: 8, accuracy: 5, description: "+8攻擊力, +5%實驗精度" },
+            "高效本生燈": { price: 150, attack: 12, description: "+12攻擊力, 加速反應任務" },
+            "電解大師手套": { price: 200, attack: 15, defense: 10, description: "+15攻擊力, +10防禦力" },
+            "化學典籍": { price: 120, defense: 10, accuracy: 8, description: "+10防禦力, 提升理論題得分" },
+            "護目鏡": { price: 80, defense: 5, accuracy: 10, description: "+5防禦力, +10%實驗精度" },
+            "計算神器": { price: 250, attack: 20, accuracy: 15, description: "+20攻擊力, +15%計算準確度" }
+        };
 
-export default ChemistryRPG;
+        // 挑戰相關變數
+        let currentChallenge = null;
+        let challengeQuestions = [];
+        let currentQuestion = 0;
+        let selectedAnswer = '';
+        let showResult = false;
+        let challengeResults = { correct: 0, total: 0 };
+
+        // 初始化遊戲
+        function initGame() {
+            loadGame();
+            updatePlayerDisplay();
+            showMain();
+        }
+
+        // 載入遊戲數據
+        function loadGame() {
+            const savedGame = localStorage.getItem('dse-chemistry-rpg');
+            if (savedGame) {
+                try {
+                    const data = JSON.parse(savedGame);
+                    gameData = { ...gameData, ...data };
+                } catch (e) {
+                    console.error('載入遊戲失敗:', e);
+                }
+            }
+        }
+
+        // 儲存遊戲
+        function saveGame() {
+            const saveData = {
+                ...gameData,
+                lastSave: new Date().toISOString()
+            };
+            localStorage.setItem('dse-chemistry-rpg', JSON.stringify(saveData));
+            showMessage('✅ 遊戲進度已儲存！');
+        }
+
+        // 顯示訊息
+        function showMessage(message) {
+            const container = document.getElementById('message-container');
+            container.textContent = message;
+            container.classList.remove('hidden');
+            setTimeout(() => {
+                container.classList.add('hidden');
+            }, 3000);
+        }
+
+        // 更新玩家顯示
+        function updatePlayerDisplay() {
+            const player = gameData.player;
+            document.getElementById('player-name').textContent = player.name;
+            document.getElementById('player-title').textContent = player.title;
+            document.getElementById('player-level').textContent = `等級 ${player.level}`;
+            document.getElementById('player-coins').textContent = `${player.coins} 金幣`;
+            document.getElementById('player-attack').textContent = player.attack;
+            document.getElementById('player-defense').textContent = player.defense;
+            document.getElementById('player-accuracy').textContent = `${player.accuracy}%`;
+            document.getElementById('exp-display').textContent = `${player.exp}/${player.exp_to_next}`;
+            
+            const expPercentage = (player.exp / player.exp_to_next) * 100;
+            document.getElementById('exp-bar').style.width = `${expPercentage}%`;
+
+            if (player.total_questions > 0) {
+                const accuracy = ((player.correct_answers / player.total_questions) * 100).toFixed(1);
+                document.getElementById('accuracy-rate').textContent = `${accuracy}%`;
+                document.getElementById('correct-total').textContent = `${player.correct_answers}/${player.total_questions}`;
+                document.getElementById('accuracy-display').classList.remove('hidden');
+            }
+        }
+
+        // 升級檢查
+        function checkLevelUp() {
+            let player = gameData.player;
+            while (player.exp >= player.exp_to_next) {
+                player.exp -= player.exp_to_next;
+                player.level += 1;
+                player.exp_to_next = Math.floor(player.exp_to_next * 1.5);
+                player.attack += 5;
+                player.defense += 3;
+                player.accuracy += 2;
+                player.skill_points += 1;
+
+                // 更新稱號
+                if (player.level >= 20) player.title = "傳奇煉金師";
+                else if (player.level >= 15) player.title = "元素掌控者";
+                else if (player.level >= 10) player.title = "傑出分析者";
+                else if (player.level >= 5) player.title = "合格實驗員";
+
+                showMessage(`🎉 恭喜升級到 ${player.level} 級！獲得技能點 +1`);
+            }
+            updatePlayerDisplay();
+        }
+
+        // 檢查成就
+        function checkAchievements() {
+            const player = gameData.player;
+            const achievements = gameData.achievements;
+            let newUnlocked = [];
+
+            // 百題斬
+            if (player.total_questions >= 100 && !achievements['百題斬'].unlocked) {
+                achievements['百題斬'].unlocked = true;
+                newUnlocked.push('百題斬');
+            }
+
+            // 完美主義者
+            if (player.total_questions >= 20 && 
+                (player.correct_answers / player.total_questions) >= 0.9 &&
+                !achievements['完美主義者'].unlocked) {
+                achievements['完美主義者'].unlocked = true;
+                newUnlocked.push('完美主義者');
+            }
+
+            // 處理新成就獎勵
+            if (newUnlocked.length > 0) {
+                let totalReward = 0;
+                newUnlocked.forEach(achievement => {
+                    totalReward += achievements[achievement].reward;
+                });
+                player.coins += totalReward;
+                showMessage(`🏆 獲得成就：${newUnlocked.join('、')}！獎勵 ${totalReward} 金幣`);
+                updatePlayerDisplay();
+            }
+        }
+
+        // 視圖切換
+        function hideAllViews() {
+            const views = ['main-view', 'topics-view', 'challenge-view', 'shop-view', 'achievements-view', 'report-view', 'bosses-view'];
+            views.forEach(view => {
+                document.getElementById(view).classList.add('hidden');
+            });
+        }
+
+        function showMain() {
+            hideAllViews();
+            document.getElementById('main-view').classList.remove('hidden');
+            updatePlayerDisplay();
+        }
+
+        function showTopics() {
+            hideAllViews();
+            document.getElementById('topics-view').classList.remove('hidden');
+            renderTopics();
+        }
+
+        function showBosses() {
+            hideAllViews();
+            document.getElementById('bosses-view').classList.remove('hidden');
+        }
+
+        function showShop() {
+            hideAllViews();
+            document.getElementById('shop-view').classList.remove('hidden');
+            renderShop();
+        }
+
+        function showAchievements() {
+            hideAllViews();
+            document.getElementById('achievements-view').classList.remove('hidden');
+            renderAchievements();
+        }
+
+        function showReport() {
+            hideAllViews();
+            document.getElementById('report-view').classList.remove('hidden');
+            renderReport();
+        }
+
+        // 渲染課題
+        function renderTopics() {
+            const grid = document.getElementById('topics-grid');
+            grid.innerHTML = '';
+
+            Object.entries(gameData.topics).forEach(([topicId, topic]) => {
+                const progress = (topic.progress / topic.total) * 100;
+                const isComplete = topic.progress >= topic.total;
+                
+                const topicCard = document.createElement('div');
+                topicCard.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-sm card-hover';
+                topicCard.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${topic.icon}</span>
+                            <div>
+                                <h3 class="font-medium">${topic.name}</h3>
+                                <p class="text-sm text-gray-600">
+                                    進度: ${topic.progress}/${topic.total}
+                                    ${isComplete ? ' ✅已完成' : ''}
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="startTopicChallenge('${topicId}')" 
+                                ${!questionBank[topicId] ? 'disabled' : ''}
+                                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg transition-colors">
+                            開始挑戰
+                        </button>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                grid.appendChild(topicCard);
+            });
+        }
+
+        // 開始課題挑戰
+        function startTopicChallenge(topicId) {
+            const questions = questionBank[topicId] || [];
+            if (questions.length === 0) {
+                showMessage('❌ 該課題暫未開放');
+                return;
+            }
+
+            challengeQuestions = questions;
+            currentChallenge = topicId;
+            currentQuestion = 0;
+            selectedAnswer = '';
+            showResult = false;
+            challengeResults = { correct: 0, total: questions.length };
+
+            hideAllViews();
+            document.getElementById('challenge-view').classList.remove('hidden');
+            displayQuestion();
+        }
+
+        // 顯示題目
+        function displayQuestion() {
+            const question = challengeQuestions[currentQuestion];
+            const topic = gameData.topics[currentChallenge];
+
+            document.getElementById('challenge-title').textContent = `${topic.icon} ${topic.name}`;
+            document.getElementById('question-counter').textContent = `${currentQuestion + 1}/${challengeQuestions.length}`;
+            document.getElementById('question-topic').textContent = question.topic;
+            document.getElementById('question-difficulty').textContent = `難度: ${'⭐'.repeat(question.difficulty)}`;
+            document.getElementById('question-text').textContent = question.question;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('label');
+                optionDiv.className = 'flex items-center space-x-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50';
+                optionDiv.innerHTML = `
+                    <input type="radio" name="answer" value="${option.charAt(0)}" 
+                           onchange="selectAnswer('${option.charAt(0)}')"
+                           class="w-4 h-4 text-blue-600">
+                    <span class="flex-1">${option}</span>
+                `;
+                optionsContainer.appendChild(optionDiv);
+            });
+
+            document.getElementById('result-container').classList.add('hidden');
+            document.getElementById('submit-btn').textContent = '提交答案';
+            document.getElementById('submit-btn').onclick = submitAnswer;
+            document.getElementById('submit-btn').disabled = true;
+        }
+
+        // 選擇答案
+        function selectAnswer(answer) {
+            selectedAnswer = answer;
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            if (!selectedAnswer) return;
+
+            const question = challengeQuestions[currentQuestion];
+            const isCorrect = selectedAnswer === question.answer;
+            const player = gameData.player;
+
+            player.total_questions += 1;
+
+            if (isCorrect) {
+                player.correct_answers += 1;
+                const expGain = question.difficulty * 10;
+                const coinGain = question.difficulty * 2;
+                player.exp += expGain;
+                player.coins += coinGain;
+                challengeResults.correct += 1;
+            }
+
+            checkLevelUp();
+            checkAchievements();
+
+            // 顯示結果
+            const resultContainer = document.getElementById('result-container');
+            resultContainer.className = isCorrect 
+                ? 'p-4 rounded-lg mb-4 bg-green-50 border border-green-200'
+                : 'p-4 rounded-lg mb-4 bg-red-50 border border-red-200';
+            
+            resultContainer.innerHTML = `
+                <p class="font-medium mb-2 ${isCorrect ? 'text-green-800' : 'text-red-800'}">
+                    ${isCorrect ? '✅ 回答正確！' : `❌ 回答錯誤！正確答案是 ${question.answer}`}
+                </p>
+                <p class="text-gray-700">${question.explanation}</p>
+            `;
+            resultContainer.classList.remove('hidden');
+
+            // 更新按鈕
+            document.getElementById('submit-btn').textContent = 
+                currentQuestion < challengeQuestions.length - 1 ? '下一題' : '完成挑戰';
+            document.getElementById('submit-btn').onclick = nextQuestion;
+
+            // 禁用選項
+            const radios = document.querySelectorAll('input[name="answer"]');
+            radios.forEach(radio => radio.disabled = true);
+
+            // 標記正確答案
+            const options = document.querySelectorAll('#options-container label');
+            options.forEach(option => {
+                const radio = option.querySelector('input');
+                const span = option.querySelector('span');
+                if (radio.value === question.answer) {
+                    span.className = 'flex-1 text-green-600 font-medium';
+                    const checkmark = document.createElement('span');
+                    checkmark.textContent = '✓';
+                    checkmark.className = 'text-green-600';
+                    option.appendChild(checkmark);
+                } else if (radio.value === selectedAnswer && selectedAnswer !== question.answer) {
+                    const crossmark = document.createElement('span');
+                    crossmark.textContent = '✗';
+                    crossmark.className = 'text-red-600';
+                    option.appendChild(crossmark);
+                }
+            });
+        }
+
+        // 下一題
+        function nextQuestion() {
+            if (currentQuestion < challengeQuestions.length - 1) {
+                currentQuestion++;
+                selectedAnswer = '';
+                displayQuestion();
+            } else {
+                // 挑戰完成
+                const topicId = currentChallenge;
+                const topic = gameData.topics[topicId];
+                topic.progress = Math.min(topic.progress + challengeResults.correct, topic.total);
+
+                const accuracy = (challengeResults.correct / challengeResults.total) * 100;
+                if (accuracy >= 80) {
+                    const bonusExp = 50;
+                    const bonusCoins = 20;
+                    gameData.player.exp += bonusExp;
+                    gameData.player.coins += bonusCoins;
+                    checkLevelUp();
+                    showMessage(`🎉 優秀表現獎勵：${bonusExp} 經驗值，${bonusCoins} 金幣`);
+                }
+
+                showTopics();
+            }
+        }
+
+        // 渲染商店
+        function renderShop() {
+            const grid = document.getElementById('shop-grid');
+            grid.innerHTML = '';
+
+            Object.entries(equipmentShop).forEach(([itemName, itemData]) => {
+                const owned = gameData.player.equipment[itemName];
+                const canAfford = gameData.player.coins >= itemData.price;
+
+                const itemCard = document.createElement('div');
+                itemCard.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-sm card-hover';
+                itemCard.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <h3 class="font-medium mb-1">${itemName}</h3>
+                            <p class="text-sm text-gray-600 mb-2">${itemData.description}</p>
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold text-yellow-600">${itemData.price} 金幣</span>
+                                ${owned ? '<span class="text-green-600 font-medium">✅ 已擁有</span>' : ''}
+                            </div>
+                        </div>
+                        <button onclick="buyEquipment('${itemName}')" 
+                                ${owned || !canAfford ? 'disabled' : ''}
+                                class="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white rounded-lg transition-colors">
+                            ${owned ? '已擁有' : '購買'}
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(itemCard);
+            });
+        }
+
+        // 購買裝備
+        function buyEquipment(itemName) {
+            const itemData = equipmentShop[itemName];
+            const player = gameData.player;
+
+            if (player.coins >= itemData.price && !player.equipment[itemName]) {
+                player.coins -= itemData.price;
+                player.equipment[itemName] = itemData;
+
+                if (itemData.attack) player.attack += itemData.attack;
+                if (itemData.defense) player.defense += itemData.defense;
+                if (itemData.accuracy) player.accuracy += itemData.accuracy;
+
+                showMessage(`✅ 成功購買 ${itemName}！`);
+                updatePlayerDisplay();
+                renderShop();
+            } else if (player.equipment[itemName]) {
+                showMessage('❌ 你已經擁有這件裝備了！');
+            } else {
+                showMessage('❌ 金幣不足！');
+            }
+        }
+
+        // 渲染成就
+        function renderAchievements() {
+            const achievements = gameData.achievements;
+            const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
+            const totalCount = Object.keys(achievements).length;
+
+            document.getElementById('achievement-progress').textContent = `已解鎖：${unlockedCount}/${totalCount}`;
+
+            const grid = document.getElementById('achievements-grid');
+            grid.innerHTML = '';
+
+            Object.entries(achievements).forEach(([name, data]) => {
+                const achievementCard = document.createElement('div');
+                achievementCard.className = data.unlocked 
+                    ? 'border rounded-lg p-4 bg-yellow-50 border-yellow-200'
+                    : 'border rounded-lg p-4 bg-gray-50 border-gray-200';
+                
+                achievementCard.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${data.unlocked ? '✅' : '🔒'}</span>
+                            <div>
+                                <h3 class="font-medium">${name}</h3>
+                                <p class="text-sm text-gray-600">${data.description}</p>
+                            </div>
+                        </div>
+                        <span class="font-bold text-yellow-600">${data.reward} 金幣</span>
+                    </div>
+                `;
+                grid.appendChild(achievementCard);
+            });
+        }
+
+        // 渲染學習報告
+        function renderReport() {
+            const player = gameData.player;
+
+            if (player.total_questions > 0) {
+                const accuracy = ((player.correct_answers / player.total_questions) * 100).toFixed(1);
+                document.getElementById('total-questions').textContent = player.total_questions;
+                document.getElementById('correct-answers').textContent = player.correct_answers;
+                document.getElementById('accuracy-percentage').textContent = `${accuracy}%`;
+            } else {
+                document.getElementById('total-questions').textContent = '0';
+                document.getElementById('correct-answers').textContent = '0';
+                document.getElementById('accuracy-percentage').textContent = '0%';
+            }
+
+            // 課題進度
+            const topicProgress = document.getElementById('topic-progress');
+            topicProgress.innerHTML = '';
+
+            Object.entries(gameData.topics).forEach(([topicId, topic]) => {
+                const percentage = (topic.progress / topic.total) * 100;
+                const progressDiv = document.createElement('div');
+                progressDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="flex items-center gap-2">
+                            <span>${topic.icon}</span>
+                            <span class="font-medium">${topic.name}</span>
+                        </span>
+                        <span class="text-sm text-gray-600">${percentage.toFixed(0)}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full progress-bar" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                topicProgress.appendChild(progressDiv);
+            });
+        }
+
+        // 啟動遊戲
+        window.onload = initGame;
+    </script>
+</body>
+</html>
