@@ -1,827 +1,817 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSE化学征途：元素炼金师</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4a6fa5;
-            --secondary: #e74c3c;
-            --accent: #f39c12;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-            --success: #2ecc71;
-            --danger: #e74c3c;
-            --lab-bg: #d5e8e6;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
-            color: var(--light);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="3" fill="%234a6fa5" opacity="0.6"/><circle cx="50" cy="30" r="2" fill="%23f39c12" opacity="0.6"/><circle cx="80" cy="10" r="4" fill="%23e74c3c" opacity="0.6"/><circle cx="10" cy="70" r="3" fill="%232ecc71" opacity="0.6"/><circle cx="40" cy="90" r="2" fill="%234a6fa5" opacity="0.6"/><circle cx="90" cy="60" r="5" fill="%23f39c12" opacity="0.6"/></svg>');
-            z-index: -1;
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-            color: #f1c40f;
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 20px;
-        }
-        
-        .game-area {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .main-content {
-            flex: 3;
-            min-width: 300px;
-        }
-        
-        .sidebar {
-            flex: 1;
-            min-width: 250px;
-            background: rgba(44, 62, 80, 0.7);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .panel-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .panel-title i {
-            font-size: 1.3rem;
-        }
-        
-        .player-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-        
-        .stat {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .progress-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 10px;
-            margin: 15px 0;
-        }
-        
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        
-        .progress-bar {
-            height: 20px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--success));
-            border-radius: 10px;
-            width: 65%;
-        }
-        
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn:hover {
-            background: #3a5a8c;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(1px);
-        }
-        
-        .btn-accent {
-            background: var(--accent);
-        }
-        
-        .btn-accent:hover {
-            background: #e08e0b;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .btn-success {
-            background: var(--success);
-        }
-        
-        .btn-success:hover {
-            background: #27ae60;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        
-        .topics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .topic-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        
-        .topic-card:hover {
-            transform: translateY(-5px);
-            background: rgba(74, 111, 165, 0.3);
-            border-color: var(--primary);
-        }
-        
-        .topic-card.completed {
-            background: rgba(46, 204, 113, 0.2);
-            border-color: var(--success);
-        }
-        
-        .topic-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            color: var(--accent);
-        }
-        
-        .topic-title {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-        
-        .topic-progress {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .lab-equipment {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        
-        .equipment-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            width: calc(50% - 10px);
-            min-width: 150px;
-        }
-        
-        .equipment-name {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-            color: var(--accent);
-        }
-        
-        .equipment-stats {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .bosses-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .boss-card {
-            background: rgba(231, 76, 60, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            width: calc(33.333% - 15px);
-            min-width: 150px;
-            text-align: center;
-            border: 2px solid rgba(231, 76, 60, 0.4);
-            transition: all 0.3s ease;
-        }
-        
-        .boss-card:hover {
-            transform: scale(1.05);
-            background: rgba(231, 76, 60, 0.3);
-        }
-        
-        .boss-card.defeated {
-            background: rgba(46, 204, 113, 0.2);
-            border-color: var(--success);
-        }
-        
-        .boss-level {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .boss-name {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-        }
-        
-        .quiz-container {
-            background: var(--lab-bg);
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 20px;
-            color: var(--dark);
-        }
-        
-        .quiz-question {
-            font-size: 1.4rem;
-            margin-bottom: 25px;
-            font-weight: bold;
-        }
-        
-        .quiz-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .quiz-option {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid #ddd;
-            font-weight: 500;
-        }
-        
-        .quiz-option:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary);
-        }
-        
-        .quiz-option.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        .quiz-option.correct {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
-        }
-        
-        .quiz-option.incorrect {
-            background: var(--danger);
-            color: white;
-            border-color: var(--danger);
-        }
-        
-        .quiz-result {
-            text-align: center;
-            padding: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            display: none;
-        }
-        
-        .achievements-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .achievement-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            opacity: 0.5;
-        }
-        
-        .achievement-card.unlocked {
-            opacity: 1;
-            background: rgba(243, 156, 18, 0.2);
-            border: 2px solid var(--accent);
-        }
-        
-        .achievement-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: var(--accent);
-        }
-        
-        .achievement-title {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-        
-        .achievement-desc {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        @media (max-width: 768px) {
-            .game-area {
-                flex-direction: column;
-            }
-            
-            .quiz-options {
-                grid-template-columns: 1fr;
-            }
-            
-            .boss-card {
-                width: calc(50% - 10px);
-            }
-            
-            .equipment-card {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-flask"></i> DSE化学征途：元素炼金师</h1>
-            <p class="subtitle">融合香港DSE化学课程与角色扮演游戏的沉浸式学习体验</p>
-        </header>
-        
-        <div class="game-area">
-            <div class="main-content">
-                <div class="panel">
-                    <h2 class="panel-title"><i class="fas fa-book"></i> 化学课题挑战</h2>
-                    <p>选择DSE化学课题进行挑战，通过回答化学问题获取经验值和金币！</p>
-                    
-                    <div class="topics-grid">
-                        <div class="topic-card" data-topic="1">
-                            <div class="topic-icon"><i class="fas fa-globe-asia"></i></div>
-                            <div class="topic-title">地球资源</div>
-                            <div class="topic-progress">进度: 2/5</div>
-                        </div>
-                        
-                        <div class="topic-card" data-topic="2">
-                            <div class="topic-icon"><i class="fas fa-atom"></i></div>
-                            <div class="topic-title">微观世界</div>
-                            <div class="topic-progress">进度: 0/5</div>
-                        </div>
-                        
-                        <div class="topic-card completed" data-topic="3">
-                            <div class="topic-icon"><i class="fas fa-gem"></i></div>
-                            <div class="topic-title">金属</div>
-                            <div class="topic-progress">已完成</div>
-                        </div>
-                        
-                        <div class="topic-card" data-topic="4">
-                            <div class="topic-icon"><i class="fas fa-vial"></i></div>
-                            <div class="topic-title">酸碱盐</div>
-                            <div class="topic-progress">进度: 1/5</div>
-                        </div>
-                        
-                        <div class="topic-card" data-topic="5">
-                            <div class="topic-icon"><i class="fas fa-gas-pump"></i></div>
-                            <div class="topic-title">化石燃料</div>
-                            <div class="topic-progress">进度: 0/5</div>
-                        </div>
-                        
-                        <div class="topic-card" data-topic="6">
-                            <div class="topic-icon"><i class="fas fa-battery-full"></i></div>
-                            <div class="topic-title">氧化还原反应</div>
-                            <div class="topic-progress">进度: 0/5</div>
-                        </div>
-                    </div>
-                    
-                    <div class="quiz-container" id="quizSection">
-                        <div class="quiz-question" id="question">铁矿石主要用哪种方法提取铁？</div>
-                        
-                        <div class="quiz-options">
-                            <div class="quiz-option" data-option="A">A. 电解</div>
-                            <div class="quiz-option" data-option="B">B. 碳还原</div>
-                            <div class="quiz-option" data-option="C">C. 热分解</div>
-                            <div class="quiz-option" data-option="D">D. 物理分离</div>
-                        </div>
-                        
-                        <div class="btn-group">
-                            <button class="btn btn-accent" id="submitAnswer"><i class="fas fa-paper-plane"></i> 提交答案</button>
-                            <button class="btn" id="nextQuestion"><i class="fas fa-arrow-right"></i> 下一题</button>
-                        </div>
-                        
-                        <div class="quiz-result" id="quizResult">
-                            ✅ 回答正确！获得 25 XP 和 10 金币！
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel">
-                    <h2 class="panel-title"><i class="fas fa-skull"></i> 知识魔王挑战</h2>
-                    <p>挑战代表DSE不同等级的魔王，证明你的化学实力！</p>
-                    
-                    <div class="bosses-container">
-                        <div class="boss-card defeated">
-                            <div class="boss-level">U</div>
-                            <div class="boss-name">混沌之源</div>
-                            <div class="boss-status">已击败</div>
-                        </div>
-                        
-                        <div class="boss-card defeated">
-                            <div class="boss-level">1</div>
-                            <div class="boss-name">模糊之影</div>
-                            <div class="boss-status">已击败</div>
-                        </div>
-                        
-                        <div class="boss-card defeated">
-                            <div class="boss-level">2</div>
-                            <div class="boss-name">结构之惑</div>
-                            <div class="boss-status">已击败</div>
-                        </div>
-                        
-                        <div class="boss-card defeated">
-                            <div class="boss-level">3</div>
-                            <div class="boss-name">变化之律</div>
-                            <div class="boss-status">已击败</div>
-                        </div>
-                        
-                        <div class="boss-card">
-                            <div class="boss-level">4</div>
-                            <div class="boss-name">分析之眼</div>
-                            <div class="boss-status">未挑战</div>
-                        </div>
-                        
-                        <div class="boss-card">
-                            <div class="boss-level">5**</div>
-                            <div class="boss-name">创新之巅</div>
-                            <div class="boss-status">未挑战</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="sidebar">
-                <div class="panel">
-                    <h2 class="panel-title"><i class="fas fa-user"></i> 角色状态</h2>
-                    
-                    <div class="player-stats">
-                        <div class="stat">
-                            <div class="stat-value">15</div>
-                            <div class="stat-label">等级</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">875</div>
-                            <div class="stat-label">经验值</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">420</div>
-                            <div class="stat-label">金币</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">68</div>
-                            <div class="stat-label">攻击力</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">45</div>
-                            <div class="stat-label">防御力</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">82</div>
-                            <div class="stat-label">实验精度</div>
-                        </div>
-                    </div>
-                    
-                    <div class="progress-container">
-                        <div class="progress-label">
-                            <span>升级进度</span>
-                            <span>875/1500</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button class="btn"><i class="fas fa-sync-alt"></i> 学习报告</button>
-                        <button class="btn"><i class="fas fa-cog"></i> 设置</button>
-                    </div>
-                </div>
-                
-                <div class="panel">
-                    <h2 class="panel-title"><i class="fas fa-award"></i> 成就系统</h2>
-                    <p>完成特殊目标解锁独特成就和奖励！</p>
-                    
-                    <div class="achievements-grid">
-                        <div class="achievement-card unlocked">
-                            <div class="achievement-icon"><i class="fas fa-bolt"></i></div>
-                            <div class="achievement-title">电解大师</div>
-                            <div class="achievement-desc">完成10个电解题目</div>
-                        </div>
-                        
-                        <div class="achievement-card unlocked">
-                            <div class="achievement-icon"><i class="fas fa-calculator"></i></div>
-                            <div class="achievement-title">计算达人</div>
-                            <div class="achievement-desc">连续10题计算全对</div>
-                        </div>
-                        
-                        <div class="achievement-card">
-                            <div class="achievement-icon"><i class="fas fa-vial"></i></div>
-                            <div class="achievement-title">实验零失误</div>
-                            <div class="achievement-desc">完成所有实验模拟</div>
-                        </div>
-                        
-                        <div class="achievement-card">
-                            <div class="achievement-icon"><i class="fas fa-crown"></i></div>
-                            <div class="achievement-title">传奇炼金师</div>
-                            <div class="achievement-desc">击败所有知识魔王</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel">
-                    <h2 class="panel-title"><i class="fas fa-tools"></i> 实验装备</h2>
-                    <p>使用金币购买装备提升你的化学能力！</p>
-                    
-                    <div class="lab-equipment">
-                        <div class="equipment-card">
-                            <div class="equipment-name">精密滴定管</div>
-                            <div class="equipment-stats">+8 攻击力</div>
-                            <div class="equipment-stats">+5% 实验精度</div>
-                        </div>
-                        
-                        <div class="equipment-card">
-                            <div class="equipment-name">高效本生灯</div>
-                            <div class="equipment-stats">+12 攻击力</div>
-                            <div class="equipment-stats">加速反应任务</div>
-                        </div>
-                        
-                        <div class="equipment-card">
-                            <div class="equipment-name">电解大师手套</div>
-                            <div class="equipment-stats">+15 攻击力</div>
-                            <div class="equipment-stats">+10 防御力</div>
-                        </div>
-                        
-                        <div class="equipment-card">
-                            <div class="equipment-name">化学典籍</div>
-                            <div class="equipment-stats">+10 防御力</div>
-                            <div class="equipment-stats">提升理论题得分</div>
-                        </div>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-accent"><i class="fas fa-shopping-cart"></i> 进入装备商店</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+import React, { useState, useEffect } from 'react';
+import { Trophy, BookOpen, Sword, ShoppingCart, BarChart3, Save, LogOut, Star, Coins, Zap, Shield, Target, ChevronRight, Award, Crown } from 'lucide-react';
 
-    <script>
-        // 模拟游戏数据
-        const gameData = {
-            player: {
-                name: "化学学徒",
-                level: 15,
-                exp: 875,
-                coins: 420,
-                attack: 68,
-                defense: 45,
-                accuracy: 82,
-                topicsCompleted: [3],
-                bossesDefeated: ["U", "1", "2", "3"],
-                achievements: ["electrolysis", "calculation"]
-            },
-            currentQuestion: 0,
-            questions: [
-                {
-                    question: "铁矿石主要用哪种方法提取铁？",
-                    options: ["A. 电解", "B. 碳还原", "C. 热分解", "D. 物理分离"],
-                    answer: "B",
-                    explanation: "铁矿石通常使用碳还原法提取铁，在高温下用一氧化碳还原氧化铁。"
-                },
-                {
-                    question: "以下哪种离子会使水变硬？",
-                    options: ["A. Na⁺", "B. K⁺", "C. Mg²⁺", "D. H⁺"],
-                    answer: "C",
-                    explanation: "镁离子(Mg²⁺)和钙离子(Ca²⁺)是导致水硬度的主要离子。"
-                },
-                {
-                    question: "乙醇完全燃烧的产物是什么？",
-                    options: ["A. CO + H₂O", "B. CO₂ + H₂", "C. CO₂ + H₂O", "D. C + H₂O"],
-                    answer: "C",
-                    explanation: "乙醇(C₂H₅OH)完全燃烧产生二氧化碳(CO₂)和水(H₂O)。"
-                }
-            ]
-        };
+const ChemistryRPG = () => {
+  // 初始玩家數據
+  const initialPlayer = {
+    name: "見習化學家",
+    level: 1,
+    exp: 0,
+    exp_to_next: 100,
+    coins: 50,
+    attack: 10,
+    defense: 5,
+    accuracy: 60,
+    skill_points: 0,
+    title: "化學學徒",
+    equipment: {},
+    achievements: [],
+    topics_completed: [],
+    bosses_defeated: [],
+    daily_streak: 0,
+    total_questions: 0,
+    correct_answers: 0
+  };
+
+  // 課題數據
+  const initialTopics = {
+    "1": { name: "地球資源", icon: "🌍", progress: 0, total: 5 },
+    "2": { name: "微觀世界", icon: "⚛️", progress: 0, total: 5 },
+    "3": { name: "金屬", icon: "💎", progress: 0, total: 5 },
+    "4": { name: "酸鹼鹽", icon: "🧪", progress: 0, total: 5 },
+    "5": { name: "化石燃料", icon: "⛽", progress: 0, total: 5 },
+    "6": { name: "氧化還原反應", icon: "🔋", progress: 0, total: 5 },
+    "7": { name: "化學反應與能量", icon: "⚡", progress: 0, total: 5 },
+    "8": { name: "反應速率與平衡", icon: "⚖️", progress: 0, total: 5 },
+    "9": { name: "化學世界中的規律", icon: "📊", progress: 0, total: 5 }
+  };
+
+  // 魔王數據
+  const initialBosses = {
+    "U": { name: "混沌之源", level: "U", defeated: false, hp: 100, difficulty: 1 },
+    "1": { name: "模糊之影", level: "1", defeated: false, hp: 150, difficulty: 2 },
+    "2": { name: "結構之惑", level: "2", defeated: false, hp: 200, difficulty: 3 },
+    "3": { name: "變化之律", level: "3", defeated: false, hp: 250, difficulty: 4 },
+    "4": { name: "分析之眼", level: "4", defeated: false, hp: 300, difficulty: 5 },
+    "5": { name: "綜合之網", level: "5", defeated: false, hp: 400, difficulty: 6 },
+    "5*": { name: "精通之巔", level: "5*", defeated: false, hp: 500, difficulty: 7 },
+    "5**": { name: "創新之巔", level: "5**", defeated: false, hp: 600, difficulty: 8 }
+  };
+
+  // 裝備商店
+  const equipmentShop = {
+    "精密滴定管": { price: 100, attack: 8, accuracy: 5, description: "+8攻擊力, +5%實驗精度" },
+    "高效本生燈": { price: 150, attack: 12, description: "+12攻擊力, 加速反應任務" },
+    "電解大師手套": { price: 200, attack: 15, defense: 10, description: "+15攻擊力, +10防禦力" },
+    "化學典籍": { price: 120, defense: 10, accuracy: 8, description: "+10防禦力, 提升理論題得分" },
+    "護目鏡": { price: 80, defense: 5, accuracy: 10, description: "+5防禦力, +10%實驗精度" },
+    "計算神器": { price: 250, attack: 20, accuracy: 15, description: "+20攻擊力, +15%計算準確度" }
+  };
+
+  // 成就系統
+  const initialAchievements = {
+    "電解大師": { description: "完成10個電解相關題目", reward: 50, unlocked: false },
+    "計算達人": { description: "連續10題計算全對", reward: 100, unlocked: false },
+    "實驗零失誤": { description: "完成所有實驗模擬無錯誤", reward: 200, unlocked: false },
+    "百題斬": { description: "回答100道題目", reward: 150, unlocked: false },
+    "知識收集者": { description: "完成5個課題", reward: 300, unlocked: false },
+    "魔王終結者": { description: "擊敗所有知識魔王", reward: 500, unlocked: false },
+    "完美主義者": { description: "答題準確率達到90%", reward: 250, unlocked: false }
+  };
+
+  // 題庫
+  const questionBank = {
+    "1": [
+      {
+        question: "鐵礦石主要用哪種方法提取鐵？",
+        options: ["A. 電解", "B. 碳還原", "C. 熱分解", "D. 物理分離"],
+        answer: "B",
+        explanation: "鐵礦石通常使用碳還原法提取鐵，在高溫下用一氧化碳還原氧化鐵。",
+        topic: "金屬提取",
+        difficulty: 2
+      },
+      {
+        question: "以下哪種氣體會導致溫室效應？",
+        options: ["A. 氧氣", "B. 氮氣", "C. 二氧化碳", "D. 氫氣"],
+        answer: "C",
+        explanation: "二氧化碳是主要的溫室氣體之一，能吸收地面輻射的紅外線。",
+        topic: "環境化學",
+        difficulty: 1
+      },
+      {
+        question: "石灰石的主要成分是什麼？",
+        options: ["A. CaO", "B. CaCO₃", "C. Ca(OH)₂", "D. CaSO₄"],
+        answer: "B",
+        explanation: "石灰石的主要成分是碳酸鈣(CaCO₃)。",
+        topic: "礦物",
+        difficulty: 1
+      },
+      {
+        question: "煤炭燃燒會產生哪種有害氣體？",
+        options: ["A. O₂", "B. N₂", "C. SO₂", "D. H₂"],
+        answer: "C",
+        explanation: "煤炭含有硫化合物，燃燒時會產生二氧化硫，導致酸雨。",
+        topic: "燃料化學",
+        difficulty: 2
+      },
+      {
+        question: "海水中含量最多的鹽類是？",
+        options: ["A. NaCl", "B. MgCl₂", "C. CaCl₂", "D. KCl"],
+        answer: "A",
+        explanation: "海水中含量最多的鹽類是氯化鈉(NaCl)，約佔總鹽分的77%。",
+        topic: "天然資源",
+        difficulty: 2
+      }
+    ],
+    "2": [
+      {
+        question: "原子核由什麼粒子組成？",
+        options: ["A. 質子和電子", "B. 質子和中子", "C. 中子和電子", "D. 只有質子"],
+        answer: "B",
+        explanation: "原子核由質子和中子組成，電子在核外運動。",
+        topic: "原子結構",
+        difficulty: 1
+      },
+      {
+        question: "碳-12原子的質量數是多少？",
+        options: ["A. 6", "B. 12", "C. 18", "D. 24"],
+        answer: "B",
+        explanation: "質量數等於質子數加中子數，碳-12有6個質子和6個中子。",
+        topic: "原子質量",
+        difficulty: 2
+      }
+    ],
+    "3": [
+      {
+        question: "金屬具有光澤是因為？",
+        options: ["A. 電子雲反射光線", "B. 原子振動", "C. 離子排列", "D. 化學反應"],
+        answer: "A",
+        explanation: "金屬的自由電子能有效反射光線，因此具有金屬光澤。",
+        topic: "金屬性質",
+        difficulty: 2
+      },
+      {
+        question: "鋁在空氣中不易腐蝕是因為？",
+        options: ["A. 鋁很穩定", "B. 表面形成氧化膜", "C. 鋁不活潑", "D. 鋁不導電"],
+        answer: "B",
+        explanation: "鋁表面會形成緻密的氧化鋁薄膜，阻止進一步氧化。",
+        topic: "金屬腐蝕",
+        difficulty: 2
+      }
+    ],
+    "4": [
+      {
+        question: "以下哪種物質是強酸？",
+        options: ["A. 醋酸", "B. 硫酸", "C. 碳酸", "D. 硼酸"],
+        answer: "B",
+        explanation: "硫酸是常見的強酸，在水中完全電離。",
+        topic: "酸的強度",
+        difficulty: 1
+      },
+      {
+        question: "pH值為7的溶液是？",
+        options: ["A. 酸性", "B. 鹼性", "C. 中性", "D. 無法確定"],
+        answer: "C",
+        explanation: "pH=7表示[H⁺]=[OH⁻]，溶液呈中性。",
+        topic: "pH值",
+        difficulty: 1
+      }
+    ]
+  };
+
+  // 狀態管理
+  const [player, setPlayer] = useState(initialPlayer);
+  const [topics, setTopics] = useState(initialTopics);
+  const [bosses, setBosses] = useState(initialBosses);
+  const [achievements, setAchievements] = useState(initialAchievements);
+  const [currentView, setCurrentView] = useState('main');
+  const [currentChallenge, setCurrentChallenge] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [showResult, setShowResult] = useState(false);
+  const [challengeQuestions, setChallengeQuestions] = useState([]);
+  const [challengeResults, setChallengeResults] = useState({ correct: 0, total: 0 });
+  const [message, setMessage] = useState('');
+
+  // 載入遊戲數據
+  useEffect(() => {
+    const savedGame = localStorage.getItem('dse-chemistry-rpg');
+    if (savedGame) {
+      try {
+        const gameData = JSON.parse(savedGame);
+        setPlayer(gameData.player || initialPlayer);
+        setTopics(gameData.topics || initialTopics);
+        setBosses(gameData.bosses || initialBosses);
+        setAchievements(gameData.achievements || initialAchievements);
+      } catch (e) {
+        console.error('載入遊戲失敗:', e);
+      }
+    }
+  }, []);
+
+  // 儲存遊戲
+  const saveGame = () => {
+    const gameData = {
+      player,
+      topics,
+      bosses,
+      achievements,
+      lastSave: new Date().toISOString()
+    };
+    localStorage.setItem('dse-chemistry-rpg', JSON.stringify(gameData));
+    setMessage('✅ 遊戲進度已儲存！');
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  // 升級檢查
+  const checkLevelUp = (newPlayer) => {
+    let updatedPlayer = { ...newPlayer };
+    
+    while (updatedPlayer.exp >= updatedPlayer.exp_to_next) {
+      updatedPlayer.exp -= updatedPlayer.exp_to_next;
+      updatedPlayer.level += 1;
+      updatedPlayer.exp_to_next = Math.floor(updatedPlayer.exp_to_next * 1.5);
+      updatedPlayer.attack += 5;
+      updatedPlayer.defense += 3;
+      updatedPlayer.accuracy += 2;
+      updatedPlayer.skill_points += 1;
+      
+      // 更新稱號
+      if (updatedPlayer.level >= 20) updatedPlayer.title = "傳奇煉金師";
+      else if (updatedPlayer.level >= 15) updatedPlayer.title = "元素掌控者";
+      else if (updatedPlayer.level >= 10) updatedPlayer.title = "傑出分析者";
+      else if (updatedPlayer.level >= 5) updatedPlayer.title = "合格實驗員";
+      
+      setMessage(`🎉 恭喜升級到 ${updatedPlayer.level} 級！獲得技能點 +1`);
+    }
+    
+    return updatedPlayer;
+  };
+
+  // 檢查成就
+  const checkAchievements = (newPlayer) => {
+    let updatedAchievements = { ...achievements };
+    let newUnlocked = [];
+    
+    // 百題斬
+    if (newPlayer.total_questions >= 100 && !updatedAchievements['百題斬'].unlocked) {
+      updatedAchievements['百題斬'].unlocked = true;
+      newUnlocked.push('百題斬');
+    }
+    
+    // 完美主義者
+    if (newPlayer.total_questions >= 20 && 
+        (newPlayer.correct_answers / newPlayer.total_questions) >= 0.9 &&
+        !updatedAchievements['完美主義者'].unlocked) {
+      updatedAchievements['完美主義者'].unlocked = true;
+      newUnlocked.push('完美主義者');
+    }
+    
+    // 處理新成就獎勵
+    if (newUnlocked.length > 0) {
+      let totalReward = 0;
+      newUnlocked.forEach(achievement => {
+        totalReward += updatedAchievements[achievement].reward;
+      });
+      newPlayer.coins += totalReward;
+      setMessage(`🏆 獲得成就：${newUnlocked.join('、')}！獎勵 ${totalReward} 金幣`);
+    }
+    
+    setAchievements(updatedAchievements);
+    return newPlayer;
+  };
+
+  // 開始課題挑戰
+  const startTopicChallenge = (topicId) => {
+    const questions = questionBank[topicId] || [];
+    setChallengeQuestions(questions);
+    setCurrentChallenge(topicId);
+    setCurrentQuestion(0);
+    setSelectedAnswer('');
+    setShowResult(false);
+    setChallengeResults({ correct: 0, total: questions.length });
+    setCurrentView('challenge');
+  };
+
+  // 提交答案
+  const submitAnswer = () => {
+    if (!selectedAnswer) return;
+    
+    const question = challengeQuestions[currentQuestion];
+    const isCorrect = selectedAnswer === question.answer;
+    
+    let newPlayer = { ...player };
+    newPlayer.total_questions += 1;
+    
+    if (isCorrect) {
+      newPlayer.correct_answers += 1;
+      const expGain = question.difficulty * 10;
+      const coinGain = question.difficulty * 2;
+      newPlayer.exp += expGain;
+      newPlayer.coins += coinGain;
+      setChallengeResults(prev => ({ ...prev, correct: prev.correct + 1 }));
+    }
+    
+    newPlayer = checkLevelUp(newPlayer);
+    newPlayer = checkAchievements(newPlayer);
+    setPlayer(newPlayer);
+    setShowResult(true);
+  };
+
+  // 下一題
+  const nextQuestion = () => {
+    if (currentQuestion < challengeQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer('');
+      setShowResult(false);
+    } else {
+      // 挑戰完成
+      const topicId = currentChallenge;
+      const newTopics = { ...topics };
+      newTopics[topicId].progress = Math.min(
+        newTopics[topicId].progress + challengeResults.correct,
+        newTopics[topicId].total
+      );
+      setTopics(newTopics);
+      
+      const accuracy = (challengeResults.correct / challengeResults.total) * 100;
+      if (accuracy >= 80) {
+        const bonusExp = 50;
+        const bonusCoins = 20;
+        let newPlayer = { ...player };
+        newPlayer.exp += bonusExp;
+        newPlayer.coins += bonusCoins;
+        newPlayer = checkLevelUp(newPlayer);
+        setPlayer(newPlayer);
+        setMessage(`🎉 優秀表現獎勵：${bonusExp} 經驗值，${bonusCoins} 金幣`);
+      }
+      
+      setCurrentView('main');
+    }
+  };
+
+  // 購買裝備
+  const buyEquipment = (itemName, itemData) => {
+    if (player.coins >= itemData.price && !player.equipment[itemName]) {
+      let newPlayer = { ...player };
+      newPlayer.coins -= itemData.price;
+      newPlayer.equipment[itemName] = itemData;
+      
+      if (itemData.attack) newPlayer.attack += itemData.attack;
+      if (itemData.defense) newPlayer.defense += itemData.defense;
+      if (itemData.accuracy) newPlayer.accuracy += itemData.accuracy;
+      
+      setPlayer(newPlayer);
+      setMessage(`✅ 成功購買 ${itemName}！`);
+      setTimeout(() => setMessage(''), 3000);
+    } else if (player.equipment[itemName]) {
+      setMessage('❌ 你已經擁有這件裝備了！');
+      setTimeout(() => setMessage(''), 3000);
+    } else {
+      setMessage('❌ 金幣不足！');
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  // 進度條組件
+  const ProgressBar = ({ current, max, className = '' }) => {
+    const percentage = (current / max) * 100;
+    return (
+      <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
+        <div 
+          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    );
+  };
+
+  // 主界面渲染
+  const renderMainView = () => (
+    <div className="space-y-6">
+      {/* 玩家狀態卡片 */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold">{player.name}</h2>
+            <p className="text-blue-100">{player.title}</p>
+          </div>
+          <div className="text-right">
+            <div className="flex items-center gap-2 mb-1">
+              <Crown className="w-5 h-5" />
+              <span className="text-xl font-bold">等級 {player.level}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Coins className="w-4 h-4" />
+              <span>{player.coins} 金幣</span>
+            </div>
+          </div>
+        </div>
         
-        // 初始化游戏
-        document.addEventListener('DOMContentLoaded', function() {
-            // 课题卡片点击事件
-            const topicCards = document.querySelectorAll('.topic-card');
-            topicCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    const topicId = this.getAttribute('data-topic');
-                    startTopicChallenge(topicId);
-                });
-            });
-            
-            // 答题选项点击事件
-            const quizOptions = document.querySelectorAll('.quiz-option');
-            quizOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    // 移除之前的选择
-                    quizOptions.forEach(opt => opt.classList.remove('selected'));
-                    
-                    // 标记当前选择
-                    this.classList.add('selected');
-                });
-            });
-            
-            // 提交答案按钮事件
-            document.getElementById('submitAnswer').addEventListener('click', function() {
-                const selectedOption = document.querySelector('.quiz-option.selected');
-                if (!selectedOption) {
-                    alert('请选择一个答案！');
-                    return;
-                }
-                
-                const selectedValue = selectedOption.getAttribute('data-option');
-                const currentQuestion = gameData.questions[gameData.currentQuestion];
-                
-                // 显示结果
-                quizOptions.forEach(option => {
-                    const optionValue = option.getAttribute('data-option');
-                    if (optionValue === currentQuestion.answer) {
-                        option.classList.add('correct');
-                    } else if (optionValue === selectedValue) {
-                        option.classList.add('incorrect');
-                    }
-                });
-                
-                // 显示结果消息
-                const resultDiv = document.getElementById('quizResult');
-                if (selectedValue === currentQuestion.answer) {
-                    resultDiv.textContent = '✅ 回答正确！获得 25 XP 和 10 金币！';
-                    resultDiv.style.color = 'var(--success)';
-                } else {
-                    resultDiv.textContent = `❌ 回答错误！正确答案是 ${currentQuestion.answer}。${currentQuestion.explanation}`;
-                    resultDiv.style.color = 'var(--danger)';
-                }
-                resultDiv.style.display = 'block';
-                
-                // 禁用选项
-                quizOptions.forEach(option => {
-                    option.style.pointerEvents = 'none';
-                });
-            });
-            
-            // 下一题按钮事件
-            document.getElementById('nextQuestion').addEventListener('click', function() {
-                gameData.currentQuestion = (gameData.currentQuestion + 1) % gameData.questions.length;
-                loadQuestion(gameData.currentQuestion);
-            });
-        });
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Sword className="w-4 h-4" />
+              <span className="font-medium">攻擊力</span>
+            </div>
+            <span className="text-lg font-bold">{player.attack}</span>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Shield className="w-4 h-4" />
+              <span className="font-medium">防禦力</span>
+            </div>
+            <span className="text-lg font-bold">{player.defense}</span>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Target className="w-4 h-4" />
+              <span className="font-medium">精度</span>
+            </div>
+            <span className="text-lg font-bold">{player.accuracy}%</span>
+          </div>
+        </div>
         
-        // 开始课题挑战
-        function startTopicChallenge(topicId) {
-            // 重置问题索引
-            gameData.currentQuestion = 0;
-            
-            // 加载第一个问题
-            loadQuestion(gameData.currentQuestion);
-            
-            // 滚动到问题区域
-            document.getElementById('quizSection').scrollIntoView({ behavior: 'smooth' });
-        }
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>經驗值</span>
+            <span>{player.exp}/{player.exp_to_next}</span>
+          </div>
+          <ProgressBar current={player.exp} max={player.exp_to_next} />
+        </div>
         
-        // 加载问题
-        function loadQuestion(index) {
-            const question = gameData.questions[index];
-            
-            // 更新问题文本
-            document.getElementById('question').textContent = question.question;
-            
-            // 更新选项
-            const options = document.querySelectorAll('.quiz-option');
-            options.forEach((option, i) => {
-                option.textContent = question.options[i];
-                option.setAttribute('data-option', question.options[i].charAt(0));
-                
-                // 重置样式
-                option.className = 'quiz-option';
-                option.classList.remove('selected', 'correct', 'incorrect');
-                option.style.pointerEvents = 'auto';
-            });
-            
-            // 隐藏结果
-            document.getElementById('quizResult').style.display = 'none';
-        }
-    </script>
-</body>
-</html>
+        {player.total_questions > 0 && (
+          <div className="mt-4 text-center">
+            <span className="text-blue-100">
+              答題準確率: {((player.correct_answers / player.total_questions) * 100).toFixed(1)}% 
+              ({player.correct_answers}/{player.total_questions})
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* 主選單按鈕 */}
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          onClick={() => setCurrentView('topics')}
+          className="flex items-center justify-between p-4 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <BookOpen className="w-6 h-6" />
+            <span className="font-medium">課題挑戰</span>
+          </div>
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={() => setCurrentView('bosses')}
+          className="flex items-center justify-between p-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Sword className="w-6 h-6" />
+            <span className="font-medium">魔王挑戰</span>
+          </div>
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={() => setCurrentView('shop')}
+          className="flex items-center justify-between p-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <ShoppingCart className="w-6 h-6" />
+            <span className="font-medium">裝備商店</span>
+          </div>
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={() => setCurrentView('achievements')}
+          className="flex items-center justify-between p-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Trophy className="w-6 h-6" />
+            <span className="font-medium">成就系統</span>
+          </div>
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={() => setCurrentView('report')}
+          className="flex items-center justify-between p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <BarChart3 className="w-6 h-6" />
+            <span className="font-medium">學習報告</span>
+          </div>
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        
+        <button
+          onClick={saveGame}
+          className="flex items-center justify-between p-4 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Save className="w-6 h-6" />
+            <span className="font-medium">儲存遊戲</span>
+          </div>
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+  );
+
+  // 課題選單
+  const renderTopicsView = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">🎯 DSE化學課題挑戰</h2>
+        <button
+          onClick={() => setCurrentView('main')}
+          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+        >
+          返回主選單
+        </button>
+      </div>
+      
+      <div className="grid gap-4">
+        {Object.entries(topics).map(([topicId, topic]) => (
+          <div key={topicId} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{topic.icon}</span>
+                <div>
+                  <h3 className="font-medium">{topic.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    進度: {topic.progress}/{topic.total}
+                    {topic.progress >= topic.total && " ✅已完成"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => startTopicChallenge(topicId)}
+                disabled={!questionBank[topicId]}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+              >
+                開始挑戰
+              </button>
+            </div>
+            <ProgressBar current={topic.progress} max={topic.total} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // 挑戰界面
+  const renderChallengeView = () => {
+    if (!challengeQuestions.length) return <div>載入中...</div>;
+    
+    const question = challengeQuestions[currentQuestion];
+    
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">
+            {topics[currentChallenge]?.icon} {topics[currentChallenge]?.name}
+          </h2>
+          <span className="text-sm text-gray-600">
+            {currentQuestion + 1}/{challengeQuestions.length}
+          </span>
+        </div>
+        
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                {question.topic}
+              </span>
+              <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                難度: {'⭐'.repeat(question.difficulty)}
+              </span>
+            </div>
+            <h3 className="text-lg font-medium mb-4">{question.question}</h3>
+          </div>
+          
+          <div className="space-y-3 mb-6">
+            {question.options.map((option, index) => (
+              <label key={index} className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <input
+                  type="radio"
+                  name="answer"
+                  value={option.charAt(0)}
+                  checked={selectedAnswer === option.charAt(0)}
+                  onChange={(e) => setSelectedAnswer(e.target.value)}
+                  disabled={showResult}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className={`flex-1 ${showResult && option.charAt(0) === question.answer ? 'text-green-600 font-medium' : ''}`}>
+                  {option}
+                </span>
+                {showResult && option.charAt(0) === question.answer && (
+                  <span className="text-green-600">✓</span>
+                )}
+                {showResult && option.charAt(0) === selectedAnswer && selectedAnswer !== question.answer && (
+                  <span className="text-red-600">✗</span>
+                )}
+              </label>
+            ))}
+          </div>
+          
+          {showResult && (
+            <div className={`p-4 rounded-lg mb-4 ${selectedAnswer === question.answer ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+              <p className={`font-medium mb-2 ${selectedAnswer === question.answer ? 'text-green-800' : 'text-red-800'}`}>
+                {selectedAnswer === question.answer ? '✅ 回答正確！' : `❌ 回答錯誤！正確答案是 ${question.answer}`}
+              </p>
+              <p className="text-gray-700">{question.explanation}</p>
+            </div>
+          )}
+          
+          <div className="flex justify-end">
+            {!showResult ? (
+              <button
+                onClick={submitAnswer}
+                disabled={!selectedAnswer}
+                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+              >
+                提交答案
+              </button>
+            ) : (
+              <button
+                onClick={nextQuestion}
+                className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+              >
+                {currentQuestion < challengeQuestions.length - 1 ? '下一題' : '完成挑戰'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 裝備商店
+  const renderShopView = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">🛒 煉金師裝備商店</h2>
+        <button
+          onClick={() => setCurrentView('main')}
+          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+        >
+          返回主選單
+        </button>
+      </div>
+      
+      <div className="grid gap-4">
+        {Object.entries(equipmentShop).map(([itemName, itemData]) => (
+          <div key={itemName} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="font-medium mb-1">{itemName}</h3>
+                <p className="text-sm text-gray-600 mb-2">{itemData.description}</p>
+                <div className="flex items-center gap-4">
+                  <span className="font-bold text-yellow-600">{itemData.price} 金幣</span>
+                  {player.equipment[itemName] && (
+                    <span className="text-green-600 font-medium">✅ 已擁有</span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => buyEquipment(itemName, itemData)}
+                disabled={player.equipment[itemName] || player.coins < itemData.price}
+                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+              >
+                {player.equipment[itemName] ? '已擁有' : '購買'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // 成就系統
+  const renderAchievementsView = () => {
+    const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
+    const totalCount = Object.keys(achievements).length;
+    
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">🏆 成就系統</h2>
+            <p className="text-gray-600">已解鎖：{unlockedCount}/{totalCount}</p>
+          </div>
+          <button
+            onClick={() => setCurrentView('main')}
+            className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+          >
+            返回主選單
+          </button>
+        </div>
+        
+        <div className="grid gap-4">
+          {Object.entries(achievements).map(([name, data]) => (
+            <div key={name} className={`border rounded-lg p-4 ${data.unlocked ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{data.unlocked ? '✅' : '🔒'}</span>
+                  <div>
+                    <h3 className="font-medium">{name}</h3>
+                    <p className="text-sm text-gray-600">{data.description}</p>
+                  </div>
+                </div>
+                <span className="font-bold text-yellow-600">{data.reward} 金幣</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // 學習報告
+  const renderReportView = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">📊 學習報告</h2>
+        <button
+          onClick={() => setCurrentView('main')}
+          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+        >
+          返回主選單
+        </button>
+      </div>
+      
+      {/* 總體表現 */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <h3 className="text-lg font-medium mb-4">📈 總體表現</h3>
+        {player.total_questions > 0 ? (
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{player.total_questions}</div>
+              <div className="text-sm text-gray-600">答題總數</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{player.correct_answers}</div>
+              <div className="text-sm text-gray-600">正確答數</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {((player.correct_answers / player.total_questions) * 100).toFixed(1)}%
+              </div>
+              <div className="text-sm text-gray-600">準確率</div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-500">還沒有答題記錄，開始挑戰吧！</p>
+        )}
+      </div>
+      
+      {/* 課題完成度 */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <h3 className="text-lg font-medium mb-4">📚 課題完成度</h3>
+        <div className="space-y-3">
+          {Object.entries(topics).map(([topicId, topic]) => {
+            const percentage = (topic.progress / topic.total) * 100;
+            return (
+              <div key={topicId}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="flex items-center gap-2">
+                    <span>{topic.icon}</span>
+                    <span className="font-medium">{topic.name}</span>
+                  </span>
+                  <span className="text-sm text-gray-600">{percentage.toFixed(0)}%</span>
+                </div>
+                <ProgressBar current={topic.progress} max={topic.total} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* 標題 */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6 shadow-lg">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-center mb-2">🧪 DSE化學征途：元素煉金師</h1>
+          <p className="text-center text-blue-100">融合香港DSE化學課程與角色扮演遊戲的沉浸式學習體驗</p>
+        </div>
+      </div>
+
+      {/* 主要內容 */}
+      <div className="max-w-4xl mx-auto p-6">
+        {/* 訊息提示 */}
+        {message && (
+          <div className="mb-4 p-4 bg-green-100 border border-green-200 text-green-800 rounded-lg">
+            {message}
+          </div>
+        )}
+
+        {/* 根據當前視圖渲染不同內容 */}
+        {currentView === 'main' && renderMainView()}
+        {currentView === 'topics' && renderTopicsView()}
+        {currentView === 'challenge' && renderChallengeView()}
+        {currentView === 'shop' && renderShopView()}
+        {currentView === 'achievements' && renderAchievementsView()}
+        {currentView === 'report' && renderReportView()}
+      </div>
+    </div>
+  );
+};
+
+export default ChemistryRPG;
