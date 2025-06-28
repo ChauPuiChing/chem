@@ -131,23 +131,24 @@
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">🛒</span>
                             <span class="font-medium">裝備商店</span>
-                        </div>
+                              </div>
                         <span class="text-xl">➤</span>
                     </button>
-
-                    <button onclick="showAchievements()" class="flex items-center justify-between p-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors card-hover">
+                        
+                     <button onclick="showAchievements()" class="flex items-center justify-between p-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors card-hover">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl">🏆</span>
                             <span class="font-medium">成就系統</span>
-                    <button onclick="showSkillTree()" class="flex items-center justify-between p-4 bg-green-400 hover:bg-green-500 text-white rounded-lg transition-colors card-hover">
+                              </div>
+                        <span class="text-xl">➤</span>
+                    </button>
+                   
+                            <button onclick="showSkillTree()" class="flex items-center justify-between p-4 bg-green-400 hover:bg-green-500 text-white rounded-lg transition-colors card-hover">
                         <div class="flex items-center gap-3">
                          <span class="text-2xl">🌳</span>
                          <span class="font-medium">技能樹</span>
                         </div>
                          <span class="text-xl">➤</span>
-                    </button>
-                        </div>
-                        <span class="text-xl">➤</span>
                     </button>
 
                     <button onclick="showReport()" class="flex items-center justify-between p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors card-hover">
@@ -277,17 +278,6 @@
     </div>
     <div id="boss-list"></div>
 </div>
-
-            <div id="skill-tree-view" class="hidden animate-fade-in max-w-2xl mx-auto p-6">
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold gradient-text">🌳 技能樹</h2>
-        <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
-    </div>
-    <div id="skill-tree-grid" class="grid grid-cols-1 gap-4"></div>
-    <div class="mt-4 text-right text-blue-800 text-lg font-bold">
-        技能點：<span id="player-skill-points"></span>
-    </div>
-</div>
             
 <!-- 魔王挑戰介面 -->
 <div id="boss-challenge-view" class="hidden animate-fade-in">
@@ -320,11 +310,11 @@
                 skill_points: 0,
                 title: "化學學徒",
                 skills: {
-    "理論化學": { unlocked: false, desc: "提升理論題得分 +5%", cost: 1 },
-    "實驗技巧": { unlocked: false, desc: "滴定準確度 +5%", cost: 1 },
-    "無機化學": { unlocked: false, desc: "氧化還原題目正確率 +5%", cost: 2 }
+  "理論化學": { unlocked: false, desc: "提升理論題得分 +5%", cost: 1 },
+  "實驗技巧": { unlocked: false, desc: "滴定準確度 +5%", cost: 1 },
+  "無機化學": { unlocked: false, desc: "氧化還原題目正確率 +5%", cost: 2 }
 },
-skill_points: 0,
+
                 equipment: {},
                 achievements: [],
                 topics_completed: [],
@@ -712,7 +702,7 @@ function finishBossChallenge(victory) {
             "電解大師手套": { price: 200, attack: 15, defense: 10, description: "+15攻擊力, +10防禦力" },
             "化學典籍": { price: 120, defense: 10, accuracy: 8, description: "+10防禦力, 提升理論題得分" },
             "護目鏡": { price: 80, defense: 5, accuracy: 10, description: "+5防禦力, +10%實驗精度" },
-            "計算神器": { price: 250, attack: 20, accuracy: 15, description: "+20攻擊力, +15%計算準確度" }
+            "計算神器": { price: 250, attack: 20, accuracy: 15, description: "+20攻擊力, +15%計算準確度" },
             "速記卷軸": { price: 120, description: "縮短答題時間，理論題答題速度+10%", special: "quick-answer" },
             "靈感藥劑": { price: 200, description: "遇到難題時可顯示提示", special: "hint" }
         };
