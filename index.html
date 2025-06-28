@@ -253,19 +253,29 @@
             </div>
 
             <!-- 魔王挑戰 -->
-            <div id="bosses-view" class="hidden animate-fade-in">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold gradient-text">👹 知識魔王挑戰</h2>
-                    <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
-                </div>
-                <div class="text-center p-8 bg-white border border-gray-200 rounded-lg">
-                    <div class="text-6xl mb-4">🚧</div>
-                    <h3 class="text-xl font-bold mb-2">功能開發中</h3>
-                    <p class="text-gray-600">魔王挑戰系統即將上線，敬請期待！</p>
-                </div>
-            </div>
+<div id="bosses-view" class="hidden animate-fade-in">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold gradient-text">👹 知識魔王挑戰</h2>
+        <button onclick="showMain()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">返回主選單</button>
+    </div>
+    <div id="boss-list"></div>
+</div>
+
+<!-- 魔王挑戰介面 -->
+<div id="boss-challenge-view" class="hidden animate-fade-in">
+    <div class="max-w-2xl mx-auto space-y-6">
+        <div class="flex items-center justify-between">
+            <h2 id="boss-name" class="text-2xl font-bold"></h2>
+            <span id="boss-hp-display" class="text-lg text-red-600"></span>
+        </div>
+        <p id="boss-description" class="text-gray-700 mb-4"></p>
+        <div id="boss-question-block"></div>
+        <div id="boss-result-block" class="hidden"></div>
+        <div class="flex justify-end">
+            <button id="boss-submit-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg transition-colors">提交答案</button>
         </div>
     </div>
+</div>
 
     <script>
         // 遊戲數據
@@ -481,6 +491,152 @@
             ]
         };
 
+        // 魔王題庫示例
+const bosses = [
+    {
+        id: "boss1",
+        name: "硫磺魔王",
+        icon: "👹",
+        description: "融合酸鹼、金屬、環境化學的終極考驗。",
+        hp: 3,
+        questions: [
+            {
+                question: "硫酸與鐵反應後，產物是？",
+                options: ["A. FeSO₄ + H₂", "B. Fe₂(SO₄)₃ + H₂", "C. FeSO₄ + SO₂ + H₂O", "D. FeO + H₂SO₄"],
+                answer: "A",
+                explanation: "鐵與稀硫酸反應生成硫酸亞鐵和氫氣。"
+            },
+            {
+                question: "下列何者屬於溫室氣體？",
+                options: ["A. O₂", "B. CO₂", "C. N₂", "D. H₂"],
+                answer: "B",
+                explanation: "CO₂（二氧化碳）是主要的溫室氣體之一。"
+            },
+            {
+                question: "金屬腐蝕的主要原因是？",
+                options: ["A. 金屬與水反應", "B. 金屬與氧氣反應", "C. 金屬與氫氣反應", "D. 金屬與氯氣反應"],
+                answer: "B",
+                explanation: "金屬與氧氣反應形成氧化層，導致腐蝕。"
+            }
+        ],
+        reward: { exp: 200, coins: 100, achievement: "魔王終結者" }
+    }
+    // 可以持續新增更多魔王
+];
+
+// Boss 挑戰狀態
+let currentBoss = null;
+let bossQuestionIndex = 0;
+let bossHP = 0;
+
+// 顯示 Boss 列表
+function renderBossList() {
+    const container = document.getElementById('boss-list');
+    container.innerHTML = bosses.map(boss => `
+        <div class="mb-4 p-4 bg-white border rounded shadow flex items-center justify-between">
+            <div>
+                <span class="text-3xl mr-2">${boss.icon}</span>
+                <b>${boss.name}</b>
+                <p class="text-gray-600">${boss.description}</p>
+            </div>
+            <button onclick="startBossChallenge('${boss.id}')" class="bg-red-500 text-white px-4 py-2 rounded">挑戰</button>
+        </div>
+    `).join('');
+}
+
+// 覆寫 showBosses
+function showBosses() {
+    hideAllViews();
+    document.getElementById('bosses-view').classList.remove('hidden');
+    renderBossList();
+}
+
+// 啟動 Boss 挑戰
+function startBossChallenge(bossId) {
+    currentBoss = bosses.find(b => b.id === bossId);
+    bossQuestionIndex = 0;
+    bossHP = currentBoss.hp;
+    hideAllViews();
+    document.getElementById('boss-challenge-view').classList.remove('hidden');
+    document.getElementById('boss-name').textContent = `${currentBoss.icon} ${currentBoss.name}`;
+    document.getElementById('boss-description').textContent = currentBoss.description;
+    updateBossHP();
+    renderBossQuestion();
+}
+
+// 顯示 Boss HP
+function updateBossHP() {
+    document.getElementById('boss-hp-display').textContent = `HP: ${bossHP}/${currentBoss.hp}`;
+}
+
+// 顯示 Boss 題目
+function renderBossQuestion() {
+    const q = currentBoss.questions[bossQuestionIndex];
+    const block = document.getElementById('boss-question-block');
+    block.innerHTML = `
+        <div class="mb-2 font-medium">${q.question}</div>
+        <div>
+            ${q.options.map(opt => `
+                <label class="block mb-2">
+                    <input type="radio" name="boss-answer" value="${opt.charAt(0)}"> ${opt}
+                </label>
+            `).join('')}
+        </div>
+    `;
+    document.getElementById('boss-result-block').classList.add('hidden');
+    document.getElementById('boss-submit-btn').onclick = submitBossAnswer;
+}
+
+// 提交 Boss 答案
+function submitBossAnswer() {
+    const q = currentBoss.questions[bossQuestionIndex];
+    const selected = document.querySelector('input[name="boss-answer"]:checked');
+    if (!selected) return;
+    const isCorrect = selected.value === q.answer;
+
+    // 回饋
+    const resultBlock = document.getElementById('boss-result-block');
+    resultBlock.classList.remove('hidden');
+    resultBlock.innerHTML = isCorrect 
+        ? `<div class="text-green-700">✅ 正確！${q.explanation}</div>`
+        : `<div class="text-red-700">❌ 錯誤！正確答案是 ${q.answer}。${q.explanation}</div>`;
+
+    if (isCorrect) bossHP--;
+    updateBossHP();
+
+    // 下一題或結算
+    setTimeout(() => {
+        bossQuestionIndex++;
+        if (bossHP === 0) {
+            finishBossChallenge(true);
+        } else if (bossQuestionIndex >= currentBoss.questions.length) {
+            finishBossChallenge(false);
+        } else {
+            renderBossQuestion();
+        }
+    }, 1200);
+}
+
+// 結算 Boss 挑戰
+function finishBossChallenge(victory) {
+    const reward = currentBoss.reward;
+    let msg = '';
+    if (victory) {
+        gameData.player.exp += reward.exp;
+        gameData.player.coins += reward.coins;
+        if (gameData.achievements[reward.achievement]) {
+            gameData.achievements[reward.achievement].unlocked = true;
+        }
+        msg = `🎉 你擊敗了${currentBoss.name}！獲得${reward.exp}經驗和${reward.coins}金幣。`;
+    } else {
+        msg = '😢 挑戰失敗，下次再來！';
+    }
+    showMessage(msg);
+    checkLevelUp();
+    checkAchievements();
+    showBosses();
+}
+        
         // 裝備商店
         const equipmentShop = {
             "精密滴定管": { price: 100, attack: 8, accuracy: 5, description: "+8攻擊力, +5%實驗精度" },
