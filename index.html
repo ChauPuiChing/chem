@@ -723,17 +723,31 @@ function finishBossChallenge(victory) {
         }
 
         // 載入遊戲數據
-        function loadGame() {
-            const savedGame = localStorage.getItem('dse-chemistry-rpg');
-            if (savedGame) {
-                try {
-                    const data = JSON.parse(savedGame);
-                    gameData = { ...gameData, ...data };
-                } catch (e) {
-                    console.error('載入遊戲失敗:', e);
-                }
-            }
+        function deepMerge(target, source) {
+    for (let k in source) {
+        if (
+            typeof source[k] === 'object' && 
+            source[k] !== null && 
+            !Array.isArray(source[k])
+        ) {
+            if (!target[k]) target[k] = {};
+            deepMerge(target[k], source[k]);
+        } else {
+            target[k] = source[k];
         }
+    }
+}
+function loadGame() {
+    const savedGame = localStorage.getItem('dse-chemistry-rpg');
+    if (savedGame) {
+        try {
+            const data = JSON.parse(savedGame);
+            deepMerge(gameData, data);
+        } catch (e) {
+            console.error('載入遊戲失敗:', e);
+        }
+    }
+}
 
         // 儲存遊戲
         function saveGame() {
@@ -853,12 +867,6 @@ function finishBossChallenge(victory) {
             renderTopics();
         }
 
-        function showBosses() {
-            hideAllViews();
-            document.getElementById('bosses-view').classList.remove('hidden');
-            renderBossList();
-        }
-
         function showShop() {
             hideAllViews();
             document.getElementById('shop-view').classList.remove('hidden');
@@ -975,6 +983,7 @@ function finishBossChallenge(victory) {
         // 提交答案
         function submitAnswer() {
             if (!selectedAnswer) return;
+            document.getElementById('submit-btn').disabled = true;
 
             const question = challengeQuestions[currentQuestion];
             const isCorrect = selectedAnswer === question.answer;
@@ -1194,6 +1203,40 @@ function finishBossChallenge(victory) {
     document.getElementById('skill-tree-view').classList.remove('hidden');
     renderSkillTree();
 }
+function renderSkillTree() {
+    const grid = document.getElementById('skill-tree-grid');
+    grid.innerHTML = '';
+    Object.entries(gameData.player.skills).forEach(([name, skill]) => {
+        const unlocked = skill.unlocked;
+        const canUnlock = gameData.player.skill_points >= skill.cost && !unlocked;
+        const skillCard = document.createElement('div');
+        skillCard.className = 'p-4 bg-white rounded shadow flex justify-between items-center';
+        skillCard.innerHTML = `
+            <div>
+                <b>${name}</b>
+                <div class="text-gray-500">${skill.desc}</div>
+            </div>
+            <button ${unlocked ? 'disabled' : ''} 
+                class="bg-green-500 text-white px-4 py-2 rounded"
+                onclick="unlockSkill('${name}')">
+                ${unlocked ? '已解鎖' : `解鎖（${skill.cost}點）`}
+            </button>
+        `;
+        grid.appendChild(skillCard);
+    });
+    document.getElementById('player-skill-points').textContent = gameData.player.skill_points;
+}
+function unlockSkill(name) {
+    const player = gameData.player;
+    const skill = player.skills[name];
+    if (skill.unlocked || player.skill_points < skill.cost) return;
+    skill.unlocked = true;
+    player.skill_points -= skill.cost;
+    showMessage(`技能「${name}」已解鎖！`);
+    renderSkillTree();
+    updatePlayerDisplay();
+}
+
 
 function renderSkillTree() {
     const grid = document.getElementById('skill-tree-grid');
